@@ -1,0 +1,78 @@
+<div class="col-12">
+  <main>
+    <div class="col-12 card">
+      <form name="motorForm" #requestRID="ngForm">
+        <div class="col-12">
+
+          <div class="col-2">
+            <label for="policy">Policy Number</label>
+            <input type="text" maxlength="10" name="policyNo" id="policy" #policyNo="ngModel" pattern="^[Dd][0-9]{9}$" [(ngModel)]="absModel.policyNumber"
+              (ngModelChange)="convertToCaps();" required>
+
+            <div *ngIf="policyNo.errors && (policyNo.dirty || policyNo.touched)">
+              <p [hidden]="!policyNo.hasError('required')" class="text-danger" >
+                Policy No is required!
+              </p>
+            </div>
+
+            <div *ngIf="policyNo.errors && (policyNo.dirty || policyNo.touched)">
+              <p [hidden]="!policyNo.hasError('pattern')" class="text-danger">
+                Must be a valid Policy No!
+              </p>
+            </div>
+          </div>
+
+          <div class="col-2">
+            <label for="newInception ">New Inception</label>
+            <input type="date" id="newInception" name="newInception" #newInception="ngModel" [(ngModel)]="absModel.newInception" required/>
+
+            <div *ngIf="newInception.errors && (newInception.dirty || newInception.touched)">
+              <p [hidden]="!newInception.hasError('required')" class="text-danger">
+                Must Not be Empty!
+              </p>
+            </div>
+          </div>
+
+          <div class="col-2">
+            <label for="newInception ">New Expiry</label>
+            <input type="date" id="newExpiry" name="newExpiry" #newExpiry="ngModel" [(ngModel)]="absModel.newExpiry" required/>
+
+            <div *ngIf="newExpiry.errors && (newExpiry.dirty || newExpiry.touched)">
+              <p [hidden]="!newExpiry.hasError('required')" class="text-danger">
+                Must Not be Empty!
+              </p>
+            </div>
+          </div>
+
+          <div class="col-2">
+            <label for="newInception ">Old Inception</label>
+            <input type="date" id="oldInception" name="oldInception" #oldInception="ngModel" [(ngModel)]="absModel.oldInception" required/>
+
+            <div *ngIf="oldInception.errors && (oldInception.dirty || oldInception.touched)">
+              <p [hidden]="!oldInception.hasError('required')" class="text-danger">
+                Must Not be Empty!
+              </p>
+            </div>
+          </div>
+
+          <div class="col-2">
+            <label for="newInception ">Old Expiry</label>
+            <input type="date" id="oldExpiry" name="oldExpiry" #oldExpiry="ngModel" [(ngModel)]="absModel.oldExpiry" required />
+
+            <div *ngIf="oldExpiry.errors && (oldExpiry.dirty || oldExpiry.touched)">
+              <p [hidden]="!oldExpiry.hasError('required')" class="text-danger">
+                Must Not be Empty!
+              </p>
+            </div>
+          </div>
+
+          <div class="col-2">
+            <button class="customButton" [disabled]="requestRID.form.invalid" (click)="requestRIDChange(absModel , requestRID);">Request RID</button>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </main>
+
+</div>
