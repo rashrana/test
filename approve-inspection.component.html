@@ -1,0 +1,2597 @@
+<div class="row">
+  <div class="col-12">
+    <div class="col-12 card user-details" (keydown.enter)="getSearchActivity(searchQuery,true)">
+      <div class="col-12">
+        <div class="col-2">
+          <div class="onoffswitch">
+            <input type="checkbox" [(ngModel)]="searchQuery['oemFlagStatus']"
+              (ngModelChange)="emptySearchResult($event)" name="onoffswitch" class="onoffswitch-checkbox"
+              id="myonoffswitch" checked>
+            <label class="onoffswitch-label" for="myonoffswitch" style="margin-left: -12%;">
+              <span class="onoffswitch-inner"></span>
+              <span class="onoffswitch-switch"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-2">
+        <label for="partner">Partner</label>
+        <input type="text" id="imdCodeList" name="imdCode" [(ngModel)]="searchQuery['partner']" />
+        <!-- <datalist id="imdCodeList">
+          <option *ngFor="let c of partnerIMDCodeList" [value]="c"></option>
+        </datalist> -->
+      </div>
+      <div class="col-2">
+        <label for="policyNo">Policy Number</label>
+        <input type="text" id="policyNo" name="policyNo" [(ngModel)]="searchQuery['policyNo']">
+      </div>
+      <div class="col-2">
+        <label for="imeiReg">Registration Number</label>
+        <input type="text" id="imeiReg" name="imeiReg" [(ngModel)]="searchQuery['assetId']">
+      </div>
+      <div class="col-2">
+				<label for="activityId">Activity Id</label>
+				<input type="number" id="activityId" name="activityId" [(ngModel)]="searchQuery['activityId']">
+			</div>
+      <div class="col-2">
+        <label for="vin">VIN</label>
+        <input type="text" id="vin" name="vin" [(ngModel)]="searchQuery['vinNumber']">
+      </div>
+      <div class="col-3">
+        <label for="product">Activity</label>
+        <ng-multiselect-dropdown id="activity" name="activity" [placeholder]="'Activity'" [data]="activityListData"
+          [settings]="activityDropdownSettings" [(ngModel)]="activityTypeIdListForSearch" required>
+        </ng-multiselect-dropdown>
+      </div>
+      <div class="col-2">
+        <label for="product">Product</label>
+        <select id="product" [(ngModel)]="searchQuery['product']">
+          <option value="">Select Product</option>
+          <option *ngFor=" let prod of productList" [value]="prod.key">{{prod.value1}}</option>
+        </select>
+      </div>
+
+
+      <div class="col-3">
+        <label for="product">Status</label>
+        <ng-multiselect-dropdown id="status" name="status" [placeholder]="'Status'" [data]="statusListData"
+          [settings]="statusDropDownSettings" [(ngModel)]="statusTypeIdListForSearch" required>
+        </ng-multiselect-dropdown>
+      </div>
+      <div class="col-3">
+        <label for="product">Channel</label>
+        <ng-multiselect-dropdown id="channel" name="channel" [placeholder]="'Channel'" [data]="channelListData"
+          [settings]="channelDropDownSettings" [(ngModel)]="channelTypeIdListForSearch" required>
+        </ng-multiselect-dropdown>
+      </div>
+      <div class="col-2" *ngIf="searchQuery['oemFlag']== 'yes'">
+        <label for="oemName">OEM Name</label>
+        <select id="oemName" [(ngModel)]="searchQuery['oemName']">
+          <option value="">Select OEM Name</option>
+          <option *ngFor="let item of oemNameList" [value]="item.oemName">{{item.oemName}}</option>
+        </select>
+      </div>
+      <div class="col-2" *ngIf="searchQuery['oemFlag']== 'yes'">
+        <label for="oempriority">OEM Priority</label>
+        <select id="oempriority" [(ngModel)]="searchQuery['oemPriority']">
+          <option value="">Select OEM Priority</option>
+          <option *ngFor="let item of oemNameList" [value]="item.priorityFlag">{{item.priorityFlag}}</option>
+        </select>
+      </div>
+      <div class="col-2">
+        <label for="fromDate">From Date</label>
+        <input type="date" id="fromDate" name="fromDate" #fromDate="ngModel" [(ngModel)]="searchQuery['fromDate']"
+          (renderDayCell)='onRenderCell($event)' (close)='onCloseButton($event)' (blur)="onBlurMethod()" required />
+      </div>
+      <div class="col-2">
+        <label for="toDate ">To Date</label>
+        <input type="date" id="toDate" name="toDate" #toDate="ngModel" [(ngModel)]="searchQuery['toDate']"
+          [disabled]="fromDateFlag" (renderDayCell)="compareDatesWithStatus()" (blur)="compareDatesWithStatus()"
+          required />
+      </div>
+      <div class="col-2">
+        <label for="pitype">PI Type</label>
+        <select id="pitype" [(ngModel)]="piType">
+          <option value="">Select PI Type</option>
+          <option *ngFor=" let type of piTypeListDate" [value]="type.key">{{type.value1}}</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <div class="col-2">
+          <button type="submit" class="customButton" (click)="getSearchActivity(searchQuery,true);checkForStatus();">
+            Search
+          </button>
+        </div>
+        <div class="col-2">
+          <button type="submit" class="customButton" (click)="resetPage()">
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div class="col-12 table-responsive card">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Policy / External No.</th>
+            <th>IMDCode</th>
+            <th>Registration No.</th>
+            <th>Type</th>
+            <th>Product</th>
+            <th>Inspection Completed</th>
+            <!-- <th>Status</th> -->
+            <th *ngIf="showColumn">Lock Time</th>
+            <th *ngIf="showColumn">Locked User</th>
+            <th>OEM Name</th>
+            <th>PI Vendor</th>
+            <!-- <th>Payment</th> -->
+            <th>Status</th>
+            <th>BRKIN Type</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let searchdata of searchedDataList;let i = index"
+            [class.visualIndication]="visualIndicator[i] && !visualIndicatorOEM[i] && !visualIndicatorBreakIn[i] && !visualIndicatorRoleOver[i]"
+            [class.oemTat]="!visualIndicator[i] && visualIndicatorOEM[i] && !visualIndicatorBreakIn[i] && !visualIndicatorRoleOver[i]"
+            [class.visualIndicationBrkIn]="!visualIndicator[i] && !visualIndicatorOEM[i] && visualIndicatorBreakIn[i] && !visualIndicatorRoleOver[i]"
+            [class.visualIndicationRoleOver]="!visualIndicator[i] && !visualIndicatorOEM[i] && !visualIndicatorBreakIn[i] && visualIndicatorRoleOver[i]">
+            <td>{{searchdata.person.firstName}} {{searchdata.person.lastName}}</td>
+            <td>{{getMobile(searchdata.person)}}</td>
+            <td>{{searchdata.policyNumber}}</td>
+            <td>{{searchdata.agentId}}</td>
+            <td>{{getRegistrationNumber(searchdata)}}</td>
+            <td>{{getActivityType(searchdata.activityTypeId)}}</td>
+            <td>{{getProductName(searchdata.productId)}}</td>
+            <td>{{getActivityDate(searchdata.statusActivities,searchdata.status)}}</td>
+            <!-- <td>{{getStatus(searchdata.status)}}</td> -->
+
+            <td *ngIf="showColumn">{{getActivityDate(searchdata.statusActivities,searchdata.status)}}</td>
+            <td *ngIf="showColumn">{{getUserName(searchdata.statusActivities,searchdata.status)}}</td>
+            <td>{{searchdata.oemName}}</td>
+            <td>{{searchdata.partner}}</td>
+            <td>{{  getStatus(searchdata.status)}}</td>
+            <!-- <td title="{{(policyPaymentDetails[i] != undefined) ? policyPaymentDetails[i] : 'UNAVAILABLE'}}">
+              {{(paymentStatusDetails[i] != undefined) ? paymentStatusDetails[i].status : 'UNAVAILABLE'}}</td> -->
+            <td>{{searchdata.additionalActivitiesList | filterPaymentKey : "Type" : paymentForPIList}}</td>
+            <td>
+              <span *ngIf="checkIfManualApproval(searchdata)"
+                (click)="checkIfActivityIsLocked(searchdata,'calledFromTable');openImageGallery(searchdata); openPolicyBazaarGallery(searchdata);">
+                <i class="material-icons " title="View Gallery">image_search</i>
+              </span>
+              <span *ngIf="(searchdata.activityTypeId == 15)" data-toggle="modal" data-target="#preInspectionimageModal"
+                (click)="checkIfActivityIsLocked(searchdata,'calledFromTable');openImageGalleryForMobilePreInspection(searchdata,searchdata.activityID)">
+                <i class="material-icons " title="View Gallery">image_search</i>
+              </span>
+              <span *ngIf="searchQuery['activity']=='28'" (click)="openSurveyorAssessmentPage(searchdata)">
+                <i class="material-icons " title="Check Surveyor Assessment">assessment</i>
+              </span>
+              <span *ngIf="!searchdata.policyNumber || iconLinkPolicyVisibility[i]" data-backdrop="static"
+                data-toggle="modal" data-target="#linkPolicyModal"
+                (click)="checkIfActivityIsLocked(searchdata,'calledFromTable');openLinkPolicyPopup(searchdata)">
+                <i class="material-icons " title="Link Policy">phonelink_lock</i>
+              </span>
+              <span data-toggle="modal" data-target="#policyBazaarModal"
+                (click)="lockAndUnlockActivityStatus(searchdata,'lock');openPolicyBazaarGallery(searchdata)">
+                <i class="material-icons " title="Edit Pose">pageview</i>
+              </span>
+              <span *ngIf="searchdata.status == 47 && unlockAllowed" (click)="unlockActivityByUser(searchdata)">
+                <i class="material-icons" title="Unlock Activity">lock_open</i>
+              </span>
+              <span *ngIf="allowMissingPhotoUpload(searchdata)" data-toggle="modal" data-target="#attachmentModel"
+                (click)="openAttachmentComponent(searchdata)">
+                <i class="material-icons" title="Add Missing Photos">attach_file</i>
+              </span>
+              <!-- dont delete  this -->
+              <span *ngIf="checkIfWaiverCaseAutoApproval(searchdata)" data-backdrop="static" data-toggle="modal"
+                data-target="#odometerReadingModal"
+                (click)="lockAndUnlockActivityStatus(searchdata,'lock','odometerPopUp');toggleForOdometerReadingModal(searchdata)">
+                <i class="material-icons" title="Roll over">dashboard</i>
+              </span>
+              <span (click)="reportAsExceptionCase(searchdata)">
+                <i class="material-icons" title="Handle Exception">bug_report</i>
+              </span>
+              <span *ngIf="searchdata.status === 75" (click)="retryFailedApprovalCase(searchdata)">
+                <i class="material-icons" title="Reset Status">autorenew</i>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="searchedDataList && searchedDataList.length > 0 && !isAutoAllocationEnabledUser()"
+        class="row centralizePagination">
+        <div class="col-12" id="removePagination" *ngIf="!hidePagination">
+          <ul class="pagination">
+            <li [ngClass]="{disabled:pager.currentPage === 1}">
+              <a class="customPaginationIcon" (click)="setPage(pager.currentPage - 1)">
+                <i class="material-icons">keyboard_arrow_left</i>
+              </a>
+            </li>
+            <li *ngFor="let page of pager.pages" [ngClass]="{active:pager.currentPage === page}">
+              <a (click)="setPage(page)">{{page}}</a>
+            </li>
+            <li [ngClass]="{disabled:pager.currentPage === pager.totalPages}">
+              <a class="customPaginationIcon" (click)="setPage(pager.currentPage + 1)">
+                <i class="material-icons">keyboard_arrow_right</i>
+              </a>
+            </li>
+          </ul>
+          <span class="col-2" class="paginationCountStyle">
+            {{pager.startIndex+1}} - {{pager.endIndex+1}} of {{numberOfItem}} records
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image and video mobile pre inspection modal start here  -->
+<div class="modal fade" id="preInspectionimageModal" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="h6 fw-700">Mobile Pre Inspection
+          <span class="close" data-dismiss="modal" (click)="closeInfoModal();" aria-hidden="true">&times;</span>
+        </h3>
+      </div>
+      <div class="modal-body">
+        <section>
+          <div class="modal-tab-header">
+            <ul *ngIf="showInfoModal" class="nav nav-pills">
+              <li class="active">
+                <a class="anchorColor" href="#1" data-toggle="pill">Details</a>
+              </li>
+              <!-- <li>
+                       <a class="anchorColor" href="#2" data-toggle="pill">Images</a>
+                    </li> -->
+              <li>
+                <a class="anchorColor" href="#3" data-toggle="pill">Videos</a>
+              </li>
+            </ul>
+          </div>
+          <div class="tab-content" *ngIf="showInfoModal">
+            <div id="1" class="table-responsive tab-pane fade in active">
+              <table class="table">
+                <tr *ngFor="let addtionalDetails of addtionalActivityListForMobilePI ">
+                  <th>{{addtionalDetails.key}} </th>
+                  <th>{{addtionalDetails.value}} </th>
+                </tr>
+              </table>
+            </div>
+            <div id="2" class="table-responsive tab-pane fade in">
+              <ngx-gallery #galleryForMobilePI [options]="galleryOptions" [images]="galleryImagesForPIMobile"
+                (change)="imageChanged($event)" class="ngx-gallery"></ngx-gallery>
+              <div *ngFor="let comments of galleryImagesForPIMobile; let j = index">
+                <div *ngIf="(j == selectedThumbnailImageIndexMobile)">
+                  <span><label> Additional Comments {{comments['description']}}</label></span>
+                  <input type="text" id="userComment" name="userComment" [(ngModel)]="comments['documentComments']">
+                </div>
+              </div>
+            </div>
+            <div id="3" class="table-responsive tab-pane fade ">
+              <!-- video code starts here-->
+              <div class="table-responsive tab-pane fade active in">
+                <div>
+                  <div class="row" style="overflow-x: scroll;height: 160px;">
+                    <ul style="list-style-type: none;" *ngFor=" let doc of videoGalleryObjectListMobile; let i=index">
+                      <li class="videoClass" id="mobileVideo_{{i}}">
+                        <i class="fa fa-play-circle-o" style="font-size:100px;" (click)="setVideoToPlayer(doc,i)"></i>
+                        <label>{{doc.documentName}}</label>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="video-slider">
+                    <!-- SLIDE 1 -->
+                    <div class="slide" *ngIf="videoItemMobilePI">
+                      <video width="600px" class="slider-video" [src]="videoItemMobilePI" controls>
+                      </video>
+                    </div>
+                    <!-- END OF SLIDES -->
+                    <span class="slide-arrow left" (click)="showAnotherVideoMobilePI('left')">
+                    </span>
+                    <span class="slide-arrow right" (click)="showAnotherVideoMobilePI('right')">
+                    </span>
+                  </div>
+                  <div *ngFor="let videoComments of videoGalleryObjectListMobile; let k = index">
+                    <div *ngIf="(k == videoItemIndexMobilePI)">
+                      <span><label> Additional Comments {{videoComments['documentName']}}</label></span>
+                      <input type="text" id="videoComment" name="videoComment+ {{k}}"
+                        [(ngModel)]="commentsForMobileApproval" (ngmodelChange)="updateCommentsToDocumentObject(k)">
+                    </div>
+                  </div>
+                  <div class="col-12" style="text-align: center;">
+                    <button type="button" (click)="displayQuoteForMobilePreInspection()">Display Quote</button>
+                  </div>
+                </div>
+              </div>
+              <!-- video code ends here-->
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="modal-footer ">
+        <!-- <form name="mobilePreinspectionSMSForm" #mobilePreinspectionSMSMessage="ngForm">
+            <div style="text-align: left">
+              <div>
+                <label for="smsMessage">Adddtion Message For SMS Template</label>
+                <textarea placeholder="Message will be attached to the SMS template" rows="3" maxlength="200" name="smsMessage" [(ngModel)]="smsTemplateMessage" #smsMessage='ngModel' required></textarea>
+                <div *ngIf="smsMessage.errors && (smsMessage.dirty || smsMessage.touched)">
+                  <p [hidden]="!smsMessage.errors.required" class="text-danger">
+                    Please Enter The Reason For Action                  
+                  </p>
+                </div>
+              </div> 
+            </div>
+          </form> -->
+
+        <button type="button" data-toggle="modal" data-target="#reinspectionModalForMobile"
+          (click)="reinspectionToggleForMobile()">Reinspection</button>
+        <button type="button" (click)="submitMobileApproval('45')"
+          [disabled]="commentsForMobileApproval === ''">Approve</button>
+        <button type="button" (click)="submitMobileApproval('46')"
+          [disabled]="commentsForMobileApproval === ''">Reject</button>
+        <!-- <button [disabled] = "s3LinkCollection && s3LinkCollection.length == 0" *ngIf="showDownloadButton" (click)="downloadSelectedImage()" type="button">Download</button> -->
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Image and video mobile pre inspection modal ends here  -->
+
+<!-- Image inspection Modal starts from here -->
+<div class="modal fade" id="imageModal" data-backdrop="static" role="dialog"
+  *ngIf="showImageGallery && galleryImages.length > 0">
+  <div class="modal-dialog approvalModal">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="ma-0">
+          <span>Inspection Details</span>
+
+          <span class="pi-reason ml-4 details">
+            <span>PI Reason : </span>
+            <span [class.imp]="!preInspectionReason">{{preInspectionReason || 'Not Found'}}</span>
+          </span>
+
+          <span class="ml-2 details" *ngIf="showSensorSection">
+            <span> Sensor Details</span>
+            <a href="#" data-toggle="modal" data-target="#carModel" (click)="openCarModel()"> <i
+                class="material-icons">info</i></a>
+          </span>
+
+          <span class="ml-2 details" *ngIf="showVahanSection">
+            <span> VAHAN Details</span>
+            <a href="#" data-toggle="modal" data-target="#vahanDetails"> <i class="material-icons"
+                (click)="validationVahan();">info</i></a>
+          </span>
+          <span class="ml-2 details">
+            <span> Auto-PI Details</span>
+            <a> <i class="material-icons" (click)="openAutoPIModel();">info</i></a>
+          </span>
+          <span class="close close-btn" data-dismiss="modal" aria-hidden="true"
+            (click)="closeImageGallery(); unlockActivityByUser(unlockUserData) ">&times;</span>
+        </h5>
+      </div>
+      <div class="modal-body" *ngIf="productIdClicked != 3 || partnerValueClicked == 'PB'">
+        <div *ngIf="!hideDropDownsFor2W">
+          <div class="drop-down-section text-center">
+
+            <div class="drop-down-container" *ngIf="showColorDropdown">
+              <label for="color">Vehicle Color</label>
+              <select id="color" [(ngModel)]="colour" (ngModelChange)="saveChooseColour($event);showVerification()"
+                [disabled]="freezeDropdowns">
+                <option value="">Select Vehicle Colour</option>
+                <option *ngFor=" let color of colourList" [value]="color">{{color}}</option>
+              </select>
+            </div>
+
+            <div class="drop-down-container">
+              <label class="text-normal" for="category">Vehicle Category</label>
+              <select id="category" [(ngModel)]="selectedCategory" (ngModelChange)="selectCategory();showVerification()"
+                [disabled]="freezeDropdowns">
+                <option value="">Select Vehicle Category</option>
+                <option *ngFor="let category of allCategories" [value]="category.piCategory">{{category.piCategory}}
+                </option>
+              </select>
+            </div>
+
+            <div class="drop-down-container">
+              <label class="text-normal" for="carrier-type">Vehicle Carrier Type</label>
+              <select id="carrier-type" [(ngModel)]="selectedCarrierType"
+                (ngModelChange)="selectCarrierType();showVerification()"
+                [disabled]="!selectedCategory || freezeDropdowns">
+                <option value="">Select Carrier Type</option>
+                <option *ngFor="let carrierType of carrierTypeList" [value]="carrierType.vehicleCarrierType">
+                  {{carrierType.label}}</option>
+              </select>
+            </div>
+
+            <div class="drop-down-container">
+              <label class="text-normal" for="seating-capacity">Seating Capacity</label>
+              <select id="seating-capacity" [(ngModel)]="selectedSeatingCapacity"
+                (ngModelChange)="selectCarrierType();showVerification()"
+                [disabled]="!selectedCategory || freezeDropdowns">
+                <option value="">Select Seating Capacity</option>
+                <option *ngFor="let cvodSItem of seatingCapacityList" [value]="cvodSItem.value">
+                  {{cvodSItem.displayName}}
+                </option>
+              </select>
+            </div>
+
+            <div class="drop-down-container">
+              <label class="text-normal" for="no-of-wheels">No. of wheels</label>
+              <select id="no-of-wheels" [(ngModel)]="selectedNumOfWheels"
+                (ngModelChange)="selectNumOfWheels();showVerification()"
+                [disabled]="!selectedCategory || freezeDropdowns">
+                <option value="">Select No. of wheels</option>
+                <option *ngFor="let cvodSItem of vehicleWheelList" [value]="cvodSItem.value">
+                  {{cvodSItem.displayName}}
+                </option>
+              </select>
+            </div>
+          </div>
+          <div *ngIf="showDropdownVerificationOption" style="margin-top: 20px;">
+            <div class="text-center">
+              <h5 class="required d-in-b" style="margin-right: 2%;">Please verify above details!</h5>
+              <div class="action-btns d-in-b">
+                <button class="yes-btn" (click)="verifyVehicleDetails()">It's Correct</button>
+              </div>
+            </div>
+          </div>
+          <hr style="margin: 20px 0;">
+        </div>
+        <div style="text-align:center;">
+          <label>
+            <b>Image {{ selectedThumbnailImageIndex + 1 }} of {{galleryImages.length}}</b>
+          </label>
+        </div>
+        <div class="thumbnail-gallery-images-container">
+          <ng-container *ngFor="let image of galleryImages; let index = index">
+            <div [ngClass]="thumnailImageClass(index)" (click)="selectImageThumbnail(index)">
+              <img class="thumbnail-gallery-image" [src]="image.small">
+              <i *ngIf="galleryImagesChangesMade[index]"
+                class="material-icons thumbnail-gallery-image-changes-made">check</i>
+            </div>
+          </ng-container>
+          <div style="display:flex;" (click)="iframeOnLoad1()" *ngIf="checkVideo">
+            <video (click)="expandToEditCanvasVideo()" class="video-container" [src]="videoItem1" onclick="imageGalleryVideo(1,this)" width="88" height="54" preload="metadata">
+            </video>
+          </div>
+          <!-- <ngx-gallery  #gallery (previewChange)="previewChange($event)" (change)="checkCommentOnNextAndPrevious(gallery)" (imagesReady)="checkComment(gallery)" [options]="galleryOptions"
+          [images]="galleryImages" (previewOpen)="previewOpen(gallery)" (previewClose)="closeFullScreen(gallery)"></ngx-gallery> -->
+        </div>
+        <div class="gallery-image-container">
+          <div class="gallery-image-title-container">
+            <div class="gallery-image-title">
+              {{ galleryImages[selectedThumbnailImageIndex]['description'] }}
+            </div>
+          </div>
+          <img [src]="galleryImages[selectedThumbnailImageIndex].big" class="gallery-images"
+            (click)="vehicleDetailsConfirmed ? expandToEditCanvas() : false;">
+        </div>
+      </div>
+      <div class="modal-body" *ngIf="productIdClicked == 3 && partnerValueClicked != 'PB'">
+        <div *ngIf="!hideDropDownsFor2W">
+          <div class="drop-down-section text-center">
+
+            <div class="drop-down-container" *ngIf="showColorDropdown">
+              <label for="color">Vehicle Color</label>
+              <select id="color" [(ngModel)]="colour" (ngModelChange)="saveChooseColour($event);showVerification()"
+                [disabled]="freezeDropdowns">
+                <option value="">Select Vehicle Colour</option>
+                <option *ngFor=" let color of colourList" [value]="color">{{color}}</option>
+              </select>
+            </div>
+
+            <div class="drop-down-container">
+              <label class="text-normal" for="category">Vehicle Category</label>
+              <select id="category" [(ngModel)]="selectedCategory" (ngModelChange)="selectCategory();showVerification()"
+                [disabled]="freezeDropdowns">
+                <option value="">Select Vehicle Category</option>
+                <option *ngFor="let category of allCategories" [value]="category.piCategory">{{category.piCategory}}
+                </option>
+              </select>
+            </div>
+
+            <div class="drop-down-container">
+              <label class="text-normal" for="carrier-type">Vehicle Carrier Type</label>
+              <select id="carrier-type" [(ngModel)]="selectedCarrierType"
+                (ngModelChange)="selectCarrierType();showVerification()"
+                [disabled]="!selectedCategory || freezeDropdowns">
+                <option value="">Select Carrier Type</option>
+                <option *ngFor="let carrierType of carrierTypeList" [value]="carrierType.vehicleCarrierType">
+                  {{carrierType.label}}</option>
+              </select>
+            </div>
+
+            <div class="drop-down-container">
+              <label class="text-normal" for="seating-capacity">Seating Capacity</label>
+              <select id="seating-capacity" [(ngModel)]="selectedSeatingCapacity"
+                (ngModelChange)="selectCarrierType();showVerification()"
+                [disabled]="!selectedCategory || freezeDropdowns">
+                <option value="">Select Seating Capacity</option>
+                <option *ngFor="let cvodSItem of seatingCapacityList" [value]="cvodSItem.value">
+                  {{cvodSItem.displayName}}
+                </option>
+              </select>
+            </div>
+
+            <div class="drop-down-container">
+              <label class="text-normal" for="no-of-wheels">No. of wheels</label>
+              <select id="no-of-wheels" [(ngModel)]="selectedNumOfWheels"
+                (ngModelChange)="selectNumOfWheels();showVerification()"
+                [disabled]="!selectedCategory || freezeDropdowns">
+                <option value="">Select No. of wheels</option>
+                <option *ngFor="let cvodSItem of vehicleWheelList" [value]="cvodSItem.value">
+                  {{cvodSItem.displayName}}
+                </option>
+              </select>
+            </div>
+          </div>
+          <div *ngIf="showDropdownVerificationOption" style="margin-top: 20px;">
+            <div class="text-center">
+              <h5 class="required d-in-b" style="margin-right: 2%;">Please verify above details!</h5>
+              <div class="action-btns d-in-b">
+                <button class="yes-btn" (click)="verifyVehicleDetails()">It's Correct</button>
+              </div>
+            </div>
+          </div>
+          <hr style="margin: 20px 0;">
+        </div>
+        <div style="text-align:center;">
+          <label>
+            <b>Image {{ selectedThumbnailImageIndex + 1 }} of {{galleryImages.length}}</b>
+          </label>
+        </div>
+        <div class="thumbnail-gallery-images-container">
+          <ng-container *ngFor="let image of galleryImages; let index = index">
+            <div [ngClass]="thumnailImageClass(index)" (click)="selectImageThumbnail(index)">
+              <img class="thumbnail-gallery-image" [src]="image.small">
+              <i *ngIf="galleryImagesChangesMade[index]"
+                class="material-icons thumbnail-gallery-image-changes-made">check</i>
+            </div>
+          </ng-container>
+          <div style="display:flex;" (click)="iframeOnLoad1()" *ngIf="checkVideo">
+              <video (click)="expandToEditCanvasVideo()" class="video-container" [src]="videoItem1"  width="88" height="54" preload="metadata">
+              </video>
+            </div>
+            
+          <!-- <ngx-gallery  #gallery (previewChange)="previewChange($event)" (change)="checkCommentOnNextAndPrevious(gallery)" (imagesReady)="checkComment(gallery)" [options]="galleryOptions"
+          [images]="galleryImages" (previewOpen)="previewOpen(gallery)" (previewClose)="closeFullScreen(gallery)"></ngx-gallery> -->
+        </div>
+        <div class="gallery-image-container">
+          <div class="gallery-image-title-container">
+            <div class="gallery-image-title">
+              {{ galleryImages[selectedThumbnailImageIndex]['description'] }}
+            </div>
+          </div>
+          <img [src]="galleryImages[selectedThumbnailImageIndex].big" class="gallery-images"
+            (click)="vehicleDetailsConfirmed ? expandToEditCanvas() : false;">
+        </div>
+      </div>
+
+      <div class="footer-submit" *ngIf="!vehicleDetailsConfirmed">
+        <div style=" text-align: left;padding-left: 12px;margin-bottom: 2%;">
+          <span>OdoMeter Reading : </span>
+          <span class="input-values">{{odometerReading}} KM</span>
+          <span class="annual-mileage">Annual Mileage : </span>
+          <span class="input-values">{{annualMileageOfVehicle}} KM</span>
+          <span class="annual-mileage">Own Serial No : </span>
+          <input type="number" id="OSNID" max="15" placeholder="Enter"  [(ngModel)]="selectedOwnerSerialNumber"
+           (blur)="validateModifiedField(selectedOwnerSerialNumber)"
+              (ngModelChange)="saveManualSerialNumber($event , galleryImages[selectedThumbnailImageIndex]['documentName'])"
+              >
+          <span class="annual-mileage" [class.no-serial]="!selectedOwnerSerialNumber">Own Renewal : </span>
+          <span class="input-values">{{ownRenewal}}</span>
+        </div>
+      </div>
+      <div class="footer-submit" *ngIf="vehicleDetailsConfirmed">
+        <div style=" text-align: left;padding-left: 12px;margin-bottom: 2%;">
+          <span>OdoMeter Reading : </span>
+          <span class="input-values">{{odometerReading}} KM</span>
+          <span class="annual-mileage">Annual Mileage : </span>
+          <span class="input-values">{{annualMileageOfVehicle}} KM</span>
+          <span class="annual-mileage">Own Serial No : </span>
+          <input type="number" id="OSNID" max="15" placeholder="Enter"  [(ngModel)]="selectedOwnerSerialNumber"
+            (blur)="validateModifiedField(selectedOwnerSerialNumber)"
+              (ngModelChange)="saveManualSerialNumber($event , galleryImages[selectedThumbnailImageIndex]['documentName'])"
+              >
+          <span class="annual-mileage" [class.no-serial]="!selectedOwnerSerialNumber">Own Renewal : </span>
+          <span class="input-values">{{ownRenewal}}</span>
+        </div>
+        <div *ngIf="showLowerSection" class="col-12 left-align">
+          <label>Remarks for Approve/Reject
+            <span>(max 400)</span>
+          </label>
+          <textarea readonly name="comment" maxlength="150" id="comment" rows="5" [(ngModel)]="imageComment"></textarea>
+        </div>
+        <div class="col-12 left-align">
+          <label for="addCmt">Overall Comment</label>
+          <textarea readonly name="addCmt" id="addCmt" rows="3" [(ngModel)]="overallComment"></textarea>
+          <!-- <div class="col-6">
+            <label for="addnExcess">Additional excess</label>
+            </div>
+          </div>
+          <div *ngIf="showLowerSection" class="col-12">
+            <label>Remarks for Approve/Reject
+              <span>(max 150)</span>
+            </label>
+            <textarea name="addnExcess" id="addnExcess" rows="3" [(ngModel)]="additionalExcess"></textarea>
+          </div> -->
+          <!-- add the mfc pi status here -->
+          <div *ngIf="requestStatusFlag">
+            <p class="mfcKey">MFC PI Status: </p>
+            <p class="mfcValue">{{requestStatus}}</p>
+          </div>
+          <div *ngIf="piRequestIDflag">
+            <p class="mfcKey">PI Ref No: </p>
+            <p class="mfcValue">{{piRequestID}}</p>
+          </div>
+          <div *ngIf="declinedIDFlag">
+            <p class="secondPIRequest">PI was rejected earlier for this Proposal. This is a duplicate Quote/Proposal
+              Case.</p>
+          </div>
+          <div *ngIf="overAllPendingReason !== undefined && overAllPendingReason !== '' ">
+            <p class="mfcKey"><b>Pending Reason: </b> </p>
+            <p class="mfcKey">{{overAllPendingReason}}</p>
+          </div>
+          <div *ngIf="userCommentForPIPending !== undefined && userCommentForPIPending !== '' ">
+            <p class="mfcKey"><b>Pending Comments: </b> </p>
+            <p class="mfcKey">{{userCommentForPIPending}}</p>
+          </div>
+          <div *ngIf="piReason !== undefined && piReason !== '' ">
+            <p class="mfcKey"><b>PI Reason: </b> </p>
+            <p class="mfcKey">{{piReason}}</p>
+          </div>
+          <div *ngIf="overAllPendingPics !== undefined && overAllPendingPics !== '' ">
+            <p class="mfcKey"><b>PI Pending Pics: </b> </p>
+            <p class="mfcKey">{{overAllPendingPics}}</p>
+          </div>
+        </div>
+
+        <ng-container *ngIf="showRiskQuestions()">
+          <form [formGroup]="riskQuestionsForm">
+            <div class="row table-responsive card risk-questions">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Risk Questions</th>
+                    <th>Yes</th>
+                    <th>No</th>
+                    <th></th>
+                  </tr>
+                </thead>
+
+                <tbody kendoTooltip [tooltipTemplate]="template" [showOn]="'click'">
+                  <tr>
+                    <td>Does the PI Photos or GPS location indicate that inspection is done in/near a workshop?</td>
+                    <td><input type="radio" class="radio-option" formControlName="workshopInspection" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="workshopInspection" value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>Is there gap between headlight and bonnet?</td>
+                    <td><input type="radio" class="radio-option" formControlName="relativeGapBetweenHeadLampAndBonnet"
+                        value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="relativeGapBetweenHeadLampAndBonnet"
+                        value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>Is the body of the vehicle highly rusted/perforated/ has bubbles?</td>
+                    <td><input type="radio" class="radio-option" formControlName="rustingOrAging" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="rustingOrAging" value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>Is the vehicle a different colour from what is mentioned in RC Copy?</td>
+                    <td><input type="radio" class="radio-option" formControlName="vehicleColorMismatch" value="Yes">
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="vehicleColorMismatch" value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>In the PI photos are you able to see another vehicle/part of the vehicle of the same colour,
+                      make or model?</td>
+                    <td><input type="radio" class="radio-option" formControlName="swappedVehicle" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="swappedVehicle" value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>Is there any door missing on any side of the car?</td>
+                    <td><input type="radio" class="radio-option" formControlName="missingDoor" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="missingDoor" value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>Is any of the panels shape disorted/unusual/pressed?</td>
+                    <td><input type="radio" class="radio-option" formControlName="panelPress" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="panelPress" value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>Is there a mis-match between registration number mentioned on the number plate and registration
+                      number as per quote?</td>
+                    <td><input type="radio" class="radio-option" formControlName="invalidRegistrationNumber"
+                        value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="invalidRegistrationNumber" value="No">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Is there a mis-match between chassis number mentioned on the chassis plate and chassis number as
+                      per quote?</td>
+                    <td><input type="radio" class="radio-option" formControlName="invalidChassisNumber" value="Yes">
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="invalidChassisNumber" value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>Is the customer not cooperating to send in the correct PI photos?</td>
+                    <td><input type="radio" class="radio-option" formControlName="nonCooperativeCustomers" value="Yes">
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="nonCooperativeCustomers" value="No">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>In case the embossed chassis number is required for this vehicle, but missing from the pictures?
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="embossedChassisNumber" value="Yes">
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="embossedChassisNumber" value="No">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Is there a mis-match between registration number displayed on front and back number plate?</td>
+                    <td><input type="radio" class="radio-option" formControlName="inappropriateNumberPlates"
+                        value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="inappropriateNumberPlates" value="No">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Is the shape of frontal bumper damaged/disorted/unusual?</td>
+                    <td><input type="radio" class="radio-option" formControlName="frontalBumperDamage" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="frontalBumperDamage" value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>Are there any missing photographs?</td>
+                    <td><input type="radio" class="radio-option" formControlName="incompletePhotographs" value="Yes">
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="incompletePhotographs" value="No">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Is the time lapsed while doing Pre-inspection?</td>
+                    <td><input type="radio" class="radio-option" formControlName="timeLapsed" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="timeLapsed" value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>Is there any additional information required?</td>
+                    <td><input data-toggle="modal" data-target="#piPendingModal" type="radio" class="radio-option"
+                        (click)="setradio('FromRiskQuestion')" formControlName="additionalInformationNeeded"
+                        value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="additionalInformationNeeded"
+                        (click)="setradio('')" value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>According to IIB, is the previous year Claim Total Loss more than 60% of the ex-showroom price
+                      in single claim?
+                      <i title="Tooltip is ToolTip" class="material-icons">info</i>
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="lossInPreviousClaims" value="Yes">
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="lossInPreviousClaims" value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>According to IIB, were there more than 1 claim in the last 2 years where vehicle age is more
+                      than/equal to 3 years?
+                      <i title="Tooltip is ToolTip" class="material-icons">info</i>
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="twoOrMoreConsecutiveClaims"
+                        value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="twoOrMoreConsecutiveClaims"
+                        value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>Is the vehicle untidy/unclean?</td>
+                    <td><input type="radio" class="radio-option" formControlName="untidyVehicle" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="untidyVehicle" value="No"></td>
+                  </tr>
+                  <tr>
+                    <td>Are the vehicle photos taken in two different places/surroundings?</td>
+                    <td><input type="radio" class="radio-option" formControlName="differentlocationsInPhotograph"
+                        value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="differentlocationsInPhotograph"
+                        value="No"></td>
+                  </tr>
+
+                  <!-- newly added risk questions -->
+                  <tr>
+                    <td>Is there part of images missing from the frame?</td>
+                    <td><input type="radio" class="radio-option" formControlName="imagesNotFullFrame" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="imagesNotFullFrame" value="No"></td>
+                  </tr>
+
+                  <tr>
+                    <td>Captured images are screenshots?</td>
+                    <td><input type="radio" class="radio-option" formControlName="screenshotsNotImages" value="Yes">
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="screenshotsNotImages" value="No"></td>
+                  </tr>
+
+                  <tr>
+                    <td>Is the PI done for HEV vehicle via link/app?</td>
+                    <td><input type="radio" class="radio-option" formControlName="hevThroughDigitEdge" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="hevThroughDigitEdge" value="No"></td>
+                  </tr>
+
+                  <tr>
+                    <td>Is the quote not created for the PI?</td>
+                    <td><input type="radio" class="radio-option" formControlName="quoteCreatedForPI" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="quoteCreatedForPI" value="No"></td>
+                  </tr>
+
+                  <tr>
+                    <td>Add on coverage was missing from previous OEM Policy?</td>
+                    <td><input type="radio" class="radio-option" formControlName="noAddOnInPreviousPolicy" value="Yes">
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="noAddOnInPreviousPolicy" value="No">
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td>Any Panel Missing(Bonnet/Front Bumper/Rear Bumper/Any Door/Dickey Door/Sunroof/Both Head Lamp)?
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="anyPanelMissing" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="anyPanelMissing" value="No"></td>
+                  </tr>
+
+                  <tr>
+                    <td>Is vehicle not in working condition?
+                    </td>
+                    <td><input type="radio" class="radio-option" formControlName="vehicleWorking" value="Yes"></td>
+                    <td><input type="radio" class="radio-option" formControlName="vehicleWorking" value="No"></td>
+                  </tr>
+                </tbody>
+
+              </table>
+            </div>
+          </form>
+        </ng-container>
+        <br />
+        <button *ngIf="showButton && downloadURLflag" type="button" (click)="downloadPIReport()">PI Report</button>
+        <button *ngIf="showRuleEngineButton && showButton" type="button" data-target="#policyBazaarModal"
+          (click)="getRuleEngineResp()">Rule Engine Response</button>
+        <button *ngIf="showButton" type="button" (click)="displayQuote()">Display Quote</button>
+
+        <div class="display-inline" *ngIf="answerRiskQuestions">
+          <div>Please answer all the risk Questions</div>
+        </div>
+        <!-- <div class="display-inline" *ngIf="odometerNotEntered">
+          <div>Please enter odometer value</div>
+        </div>
+        <div class="display-inline" *ngIf="ownerSerialNumberNotEntered">
+          <div>Please enter owner serial number</div>
+        </div> -->
+
+      </div>
+
+      <div class="modal-footer" *ngIf="vehicleDetailsConfirmed">
+        <ng-container *ngIf="!showRuleEngineDecisionForMotorPvtCarWithQuoteCase">
+          <button *ngIf="showButton" type="button" data-toggle="modal" data-target="#piPendingModal"
+            (click)="openPendingandAssignValues()" [disabled]="disablePiPendingBtn">PI-Pending</button>
+          <!-- (click)="saveInspection(gallery,imageComment,'PI-PENDING',imageStatus)" -->
+          <button *ngIf="showButton" type="button" data-toggle="modal" data-target="#reinspectionModal"
+            [disabled]="disableRejectBtn || disableReInspectionBtn" (click)="reinspectionToggle()">Reinspection</button>
+          <button *ngIf="showButton" type="button" (click)="showRejectModalForMotor=!showRejectModalForMotor"
+            [disabled]="disableRejectBtn || declinedIDFlag || (showRuleEngineButton && !ruleEngineCalled)"
+            data-toggle="modal" data-target="#rejectModalForMotor">Reject</button>
+          <button *ngIf="showButton" type="button"
+            [disabled]="disableApprvBtn || declinedIDFlag || (showRuleEngineButton && !ruleEngineCalled)"
+            (click)="saveInspection(gallery,imageComment,'approve',imageStatus)">Approve</button>
+          <!-- <button *ngIf="showButton" type="button" [disabled]="declinedIDFlag" 
+          (click)="saveInspection(gallery,imageComment,'save',imageStatus)">Save</button> -->
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #template let-anchor>
+  <ng-container *ngIf="true"><span>Claim status:
+      {{iibQuoteResponse?.detail?.claimStatus}}</span><br /></ng-container>
+  <ng-container *ngIf="true"><span>Loss date:
+      {{iibQuoteResponse?.detail?.lossDate}}</span><br /></ng-container>
+  <ng-container *ngIf="true"><span>OD total paid:
+      {{iibQuoteResponse?.detail?.odTotalPaid}}</span><br /></ng-container>
+  <ng-container *ngIf="true"><span>Exshowroom price:
+      {{iibQuoteResponse?.detail?.exshowroomPrice}}</span><br /></ng-container>
+  <ng-container *ngIf="true"><span>Vehicle Age:
+      {{iibQuoteResponse?.detail?.vehicleAge}}</span><br /></ng-container>
+  <ng-container *ngIf="true"><span>Consecutive claims in the year:
+      {{iibQuoteResponse?.detail?.consicutiveClaims}}</span><br /></ng-container>
+</ng-template>
+<div class="image-gallery-overlay" id="image-gallery-overlay">
+  <div class="image-control">
+    <i class="material-icons" title="Previous image" *ngIf="selectedThumbnailImageIndex > 0"
+      (click)="previousOrNextExpandedImage('prev')">arrow_left</i>
+    <i class="material-icons" title="Next Image" *ngIf="selectedThumbnailImageIndex < (galleryImages.length - 1)"
+      (click)="previousOrNextExpandedImage('next')">arrow_right</i>
+    <i class="material-icons" title="Close overlay" (click)="closeExpandToEditCanvas();">close</i>
+  </div>
+  <div class="checkbox-imagestatus-custom">
+    <div class="col-12" *ngIf="changesForCVOD">
+      <div class="col-5">
+        <label class="text-gold" style="font-size: 1.5rem" matTooltip="Info about the action">Image Status</label>
+      </div>
+      <div class="col-3 document-name-dropdown" style="margin-right: 23px;">
+        <button style="float: left" type="button" (click)="openAndCloseDropDown($event)">Edit Pose Name</button>
+        <div class="doc-dropdown-contentCVOD">
+          <a *ngFor="let eachImageName of valuesOfCVODPoseName"
+            (click)="updateDocName(eachImageName,galleryImages[selectedThumbnailImageIndex])">
+            {{eachImageName}}</a>
+        </div>
+      </div>
+      <div class="col-3" *ngIf="saveButtonEnabled">
+        <button type="button" style="margin-right: 60px" (click)="updateTheSelectedImages()">Save</button>
+      </div>
+    </div>
+    <div class="col-12" *ngIf="!changesForCVOD">
+      <label class="text-gold" style="font-size: 1.5rem" matTooltip="Info about the action">Image Status</label>
+    </div>
+    <div class="col-12"
+      *ngIf="galleryImages[selectedThumbnailImageIndex] && galleryImages[selectedThumbnailImageIndex]['description'] =='Chassis Plate'&& showEmbossedChassisNumberRequired()">
+      <label class="text-gold" style="font-size: 1.5rem">Embossed Chassis Number required :
+        {{embossedChassisNumber}}</label>
+    </div>
+
+    <div *ngIf="showUpperSection" style="display:inline-flex">
+      <div class='data-tooltip imageRadioMargin' data-placement="top" [attr.data-tooltip]="imgStatus.value1"
+        *ngFor="let imgStatus of imageStatusCheckList; let i=index">
+        <i class="material-icons"
+          (click)="setRadioData(imgStatus.key, 'imageStatus'); savingCommentOnRadioClick('radio');">{{
+          radioButtonCheck(imgStatus.key, 'imageStatus') }}</i>
+        <label for="enum_answer_{{imgStatus.value1}}" class="radio text-gold inlineblock"> {{ imgStatus.tooltipvalues[i]
+          }} </label>
+      </div>
+      <!-- <label class='data-tooltip' data-placement="top" [attr.data-tooltip]="imgStatus.value1" style="margin:0 20px 4px 2px" *ngFor="let imgStatus of imageStatusCheckList let i=index" class="radio text-gold" for="enum_answer_{{imgStatus.value1}}">
+        <input id="enum_answer_{{imgStatus.value1}}" [value]='imgStatus.key' type="radio" class="radio-option" name="enums" [(ngModel)]="imageStatus"
+          (ngModelChange)="savingCommentOnRadioClick('radio')"> {{imgStatus.tooltipvalues[i]}}
+      </label> -->
+      <div *ngIf="imageStatus">
+        <a class="text-gold border-align" (click)="savingCommentOnRadioClick('clear')">Clear selection</a>
+      </div>
+    </div>
+    <div *ngIf="!rc_color_visible">
+      <div class="col-12"
+        *ngIf="galleryImages[selectedThumbnailImageIndex] &&  galleryImages[selectedThumbnailImageIndex]['description'] =='Front Side'">
+        <label class="text-pink" style="font-size: 1.5rem">Registration Number :
+          {{vahanRegistrationNumberDetails.veh_reg_no || '--'}}</label>
+      </div>
+      <div class="col-12"
+        *ngIf="galleryImages[selectedThumbnailImageIndex]   && galleryImages[selectedThumbnailImageIndex]['description'] =='Back Side'">
+        <label class="text-pink" style="font-size: 1.5rem">Registration Number :
+          {{vahanRegistrationNumberDetails.veh_reg_no || '--'}}</label>
+        <label class="text-pink" style="font-size: 1.5rem">Make :
+          {{vahanRegistrationNumberDetails.make || '--'}}</label>
+        <label class="text-pink" style="font-size: 1.5rem">Model :
+          {{vahanRegistrationNumberDetails.model || '--'}}</label>
+      </div>
+      <div class="col-12"
+        *ngIf="galleryImages[selectedThumbnailImageIndex]   && galleryImages[selectedThumbnailImageIndex]['description'] =='Engine Chamber'">
+        <label class="text-pink" style="font-size: 1.5rem">Engine number :
+          {{vahanRegistrationNumberDetails.engine_no || '--'}}</label>
+      </div>
+      <div class="col-12"
+        *ngIf="galleryImages[selectedThumbnailImageIndex]  && galleryImages[selectedThumbnailImageIndex]['description'] =='Chassis Plate'">
+        <label class="text-pink" style="font-size: 1.5rem">Chassis Number :
+          {{vahanRegistrationNumberDetails.vin || '--'}}</label>
+        <label class="text-pink" style="font-size: 1.5rem">Owner Name :
+          {{vahanRegistrationNumberDetails.owner_name || '--'}}</label>
+      </div>
+      <div class="col-12"
+        *ngIf="galleryImages[selectedThumbnailImageIndex]  && galleryImages[selectedThumbnailImageIndex]['description'] =='CNG'">
+        <label class="text-pink" style="font-size: 1.5rem">Fuel Type :
+          {{vahanRegistrationNumberDetails.fuel_type || '--'}}</label>
+      </div>
+      <div class="col-12"
+        *ngIf="galleryImages[selectedThumbnailImageIndex] && ( galleryImages[selectedThumbnailImageIndex]['description'] =='RC Book Front' || galleryImages[selectedThumbnailImageIndex]['description'] =='RC Book Back')">
+        <label class="text-pink" style="font-size: 1.5rem">Owner Serial Number :
+          {{vahanRegistrationNumberDetails.owner_serial_no || '--'}}</label>
+      </div>
+      <div class="col-12"
+        *ngIf="galleryImages[selectedThumbnailImageIndex] && (  galleryImages[selectedThumbnailImageIndex]['description'] =='Back Left Corner' || galleryImages[selectedThumbnailImageIndex]['description'] =='Back Right Corner'
+       || galleryImages[selectedThumbnailImageIndex]['description'] =='Back Side' || galleryImages[selectedThumbnailImageIndex]['description'] == 'Left Side' || galleryImages[selectedThumbnailImageIndex]['description'] =='Front Side' || galleryImages[selectedThumbnailImageIndex]['description'] =='Right Side' || galleryImages[selectedThumbnailImageIndex]['description'] =='Front Left Corner' || galleryImages[selectedThumbnailImageIndex]['description'] =='Front Right Corner'  )">
+        <label class="text-pink" style="font-size: 1.5rem">RC Color :
+          {{vahanRegistrationNumberDetails.rc_color || '--'}}</label>
+      </div>
+    </div>
+    <div *ngIf="showLowerSection" style="display:inline-flex;width: inherit;">
+      <div class='data-tooltip imageRadioMargin' data-placement="top" [attr.data-tooltip]="additional.value1"
+        *ngFor="let additional of additionalRadioGroup; let i=index">
+        <i class="material-icons" (click)="setRadioData(additional.key, 'additionalRadio');">{{
+          radioButtonCheck(additional.key, 'additionalRadio') }}</i>
+        <label for="enum_answer_{{additional.value1}}" class="radio text-gold inlineblock"> {{ additional.toolTipvalue
+          }} </label>
+      </div>
+      <!-- <label class='data-tooltip' data-placement="top" [attr.data-tooltip]="additional.value1" style="margin:0 20px 4px 2px" *ngFor="let additional of additionalRadioGroup" class="radio text-gold" for="enum_answer_{{additional.value1}}">
+        <input id="enum_answer_{{additional.value1}}" [value]='additional.key' type="radio" class="radio-option" name="enums" [(ngModel)]="additionalRadio"> {{additional.toolTipvalue}}
+      </label> -->
+    </div>
+
+    <div
+      *ngIf="galleryImages[selectedThumbnailImageIndex] && galleryImages[selectedThumbnailImageIndex]['description'] =='Dashboard'"
+      style="padding: 9px;">
+      <span style="font-weight: 800;color: gold;">OdoMeter Reading : </span>
+      <input name="odo" [(ngModel)]="odometerReading" style="width: auto; color: gold;border: 2px solid;
+       height: 37px;width: 23%;" type="number">
+      <button id="odoMeterButt" style="height: 37px;width: 18%;" (click)="saveOdoMeterReading()"
+        [disabled]="disabledOdoMtrBtn">Save</button>
+    </div>
+
+    <!-- owner serial number  -->
+    <div *ngIf="galleryImages[selectedThumbnailImageIndex] && (galleryImages[selectedThumbnailImageIndex]['documentName'] === 'RCB1'
+     ||  galleryImages[selectedThumbnailImageIndex]['documentName'] === 'RCB2' )
+      && showOwnerSerialNumberCheck[galleryImages[selectedThumbnailImageIndex]['documentName']]" class="osn-padding">
+      <span class="osn-span">Owner Serial Number : </span>
+      <select id="ownerSerialnumberId" class="owner-serial-number" [(ngModel)]="selectedOwnerSerialNumber"
+        (ngModelChange)="saveManualSerialNumber($event , galleryImages[selectedThumbnailImageIndex]['documentName'])">
+        <option selected value="">Select</option>
+        <option *ngFor=" let serialNumber of dropDownForOwnerSerialNumber" [value]="serialNumber.key">
+          {{serialNumber.value}}
+        </option>
+      </select>
+    </div>
+
+    <div *ngIf="showLowerSection" style="margin-top:1%">
+      <div *ngIf="isMotorFwPI === 'pvtCar'">
+        <div class="checkox-align" *ngFor="let damage of damageTypesForMotorPvtCar|keyvalue;  let i = index"
+          [ngClass]="(damageTypesForMotorPvtCar.size - 1 === i)?'last-damage-padding':'last-damage-no-padding'">
+          <div
+            [ngClass]="(selectedDamagesMap.get(damage.key)) ? 'pointer-cursor-selected' : 'pointer-cursor-unselected'">
+            <div (click)="accordian(i , $event);openDamageParts(damage)">
+              {{damage.key}} <i *ngIf="currentIndex == i" class="fa fa-caret-down"></i>
+              <i *ngIf="currentIndex !=i" class="fa fa-caret-right"></i>
+              <div id="collapse1" class="panel-collapse" [class.collapse]='currentIndex != i' class="collapse"
+                (click)="stopPropagation($event)">
+                <label *ngFor="let damage1 of damageMotorListForPvtCar;let in=index">
+                  <input type="checkbox" [(ngModel)]="damage1.value"
+                    (ngModelChange)="savingCommentOnCheckBoxClick($event,damage, damage1 ,'new');">{{damage1.key}}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- for cvod checklist  -->
+      <div *ngIf="isMotorFwPI === 'cvod'">
+        <div class="checkox-align" *ngFor="let damage of damageTypesForCVODandMISC | keyvalue;  let i = index"
+          [ngClass]="(damageTypesForCVODandMISC.size - 1 === i)?'last-damage-padding':'last-damage-no-padding'">
+          <div
+            [ngClass]="(selectedDamagesMap.get(damage.key)) ? 'pointer-cursor-selected' : 'pointer-cursor-unselected'">
+            <div (click)="accordian(i , $event);openDamageParts(damage)">
+              {{damage.key}} <i *ngIf="currentIndex == i" class="fa fa-caret-down"></i>
+              <i *ngIf="currentIndex !=i" class="fa fa-caret-right"></i>
+              <div id="collapse1" class="panel-collapse" [class.collapse]='currentIndex != i' class="collapse"
+                (click)="stopPropagation($event)">
+                <label *ngFor="let damage1 of damageMotorListForPvtCar;let in=index">
+                  <input type="checkbox" [(ngModel)]="damage1.value"
+                    (ngModelChange)="savingCommentOnCheckBoxClick($event,damage, damage1,'new');">{{damage1.key}}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2w checklist  -->
+      <div *ngIf="isMotorFwPI === 'motor2W' ">
+        <div class="checkox-align" *ngFor="let damage of damageTypesFor2W | keyvalue;  let i = index"
+          [ngClass]="(damageTypesFor2W.size - 1 === i)?'last-damage-padding':'last-damage-no-padding'">
+          <div
+            [ngClass]="(selectedDamagesMap.get(damage.key)) ? 'pointer-cursor-selected' : 'pointer-cursor-unselected'">
+            <div (click)="accordian(i , $event);openDamageParts(damage)">
+              {{damage.key}} <i *ngIf="currentIndex == i" class="fa fa-caret-down"></i>
+              <i *ngIf="currentIndex !=i" class="fa fa-caret-right"></i>
+              <div id="collapse1" class="panel-collapse" [class.collapse]='currentIndex != i' class="collapse"
+                (click)="stopPropagation($event)">
+                <label *ngFor="let damage1 of damageMotorListForPvtCar;let in=index">
+                  <input type="checkbox" [(ngModel)]="damage1.value"
+                    (ngModelChange)="savingCommentOnCheckBoxClick($event,damage, damage1,'new');">{{damage1.key}}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- policy bazaar video display -->
+    <div *ngIf="videoDisplay">
+      <label class="text-gold"
+        style="font-size: 1.5rem; position: absolute; left: 160px; top: 20px; background: cadetblue;"
+        data-toggle="modal" data-target="#videoModal" (click)="videoToggle()">Video Link</label>
+    </div>
+
+    <!-- video display modal -->
+    <div class="modal fade" id="videoModal" role="dialog" *ngIf="showVideo">
+      <div class="modal-dialog approvalModal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <span class="h6 fw-700">Policy Bazaar Video</span>
+            <div class="pbDiv">
+              <span class="close" data-dismiss="modal" aria-hidden="true" (click)="videoToggle()">&times;</span>
+            </div>
+          </div>
+
+          <div class="modal-body">
+            <div class="table-responsive tab-pane fade active in">
+              <div>
+                <div class="video-slider" *ngIf="videoListDisplayed[0]">
+                  <video width="100%" class="slider-video" [src]="videoListDisplayed[0].videoLink" controls autoplay>
+                  </video>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- assisted pi -->
+    <div *ngIf="assistedPIView">
+      <div *ngIf="showLowerSection" class="info-over-image">
+        <div class="checkox-align" *ngFor="let info of infoListDisplayedKeys; let i = index">
+          <div class="pointer-cursor">
+            <div (click)="accordianRight(i)">
+              {{info}} <i *ngIf="rightIndex == i" class="fa fa-caret-down"></i> <i *ngIf="rightIndex!=i"
+                class="fa fa-caret-right"></i>
+            </div>
+          </div>
+          <div id="collapse1" syle="font-weight: 900" class="panel-collapse" [class.collapse]='rightIndex!= i'
+            class="collapse" (click)="stopPropagation($event)">
+            {{infoListDisplayed[0][info]}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <iframe id="image-gallery-overlay-iframe" class="image-gallery-overlay-iframe" (load)="iframeOnLoad()"
+    src="assets/HTML/damage-detection.html"></iframe>
+</div>
+
+<div class="image-gallery-overlay1" id="image-gallery-overlay1">
+  <div class="image-control">
+    <i class="material-icons" title="Close overlay" (click)="closeExpandToEditCanvasVideo();">close</i>
+  </div>
+  <video id="gallery-video" (click)="expandToEditCanvasVideo()" (ended)="checkGalleryVideo()" [src]="videoItem1" controls="controls" control=false class="gallery-video video-container" width="88" height="54" preload="metadata">
+  </video>
+
+  <!-- <video id="gallery-video" (click)="expandToEditCanvasVideo()" width="600" height="400" controls="controls"
+    control=false class="gallery-video video-container" preload="metadata">
+    <source src="{{videoItem1}}" type="video/mp4">
+  </video> -->
+
+  <div style="text-align: center;"><button style="border-radius: 50px;width: 135px;" (click)="rewind(-10)"><i
+        class="material-icons" style="color: black !important;">fast_rewind</i>Rewind</button></div>
+
+  <!-- <iframe id="gallery-video" class="gallery-video"  (load)="iframeOnLoad1()" width="560" height="315"
+  src="https://www.youtube.com/embed/KS76EghdCcY?rel=0&controls=0" frameborder="0" allow="autoplay; encrypted-media" ></iframe> -->
+</div>
+
+<!-- modal for superuser -->
+<div *ngIf="superUserModal">
+  <div class="customModalContainer show-modal">
+    <div class="modal-content customModalContent">
+      <div class="modal-header modalHeader">
+        <h3 class="h6 fw-700"> PI was rejected earlier for this Proposal. This is a duplicate Quote/Proposal Case.
+        </h3>
+      </div>
+      <div class="modal-body">
+        <p>You want to continue?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="closeDownloadModal1" (click)="modalToggle('ok')" data-dismiss="modal">OK</button>
+        <button type="button" id="closeDownloadModal2" (click)="modalToggle('back')" data-dismiss="modal">GO
+          BACK</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!--Add Missing Image-->
+<add-missing-image #missingImageRef (triggerUnLockActivity)="triggerUnLockActivity($event);"></add-missing-image>
+<!-- Link Policy -->
+<div class="modal fade" id="linkPolicyModal" role="dialog" *ngIf="showLinkPolicyPopup">
+  <div class="modal-dialog resetPasswordDialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="h6 fw-700">Link Policy
+          <span class="close" data-dismiss="modal" aria-hidden="true" (click)="closeImageGallery();">&times;</span>
+        </h3>
+      </div>
+      <form name="linkPolicyForm" #linkPolicyDetailForm="ngForm">
+        <div class="modal-body">
+          <div class="col-12">
+            <label for="policyNo">Policy Number</label>
+            <input type="text" name="policyNo" id="policyNo" #policyNo="ngModel" [(ngModel)]="linkPolicy" maxlength="10"
+              pattern="^[Dd][0-9]{9}$" required>
+            <div *ngIf="policyNo.errors && (policyNo.dirty || policyNo.touched)" class="alert alert-danger">
+              <p [hidden]="!policyNo.hasError('pattern')" class="text-danger">
+                Must be a valid Policy No!
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" data-dismiss="modal" (click)="closeImageGallery();">Close</button>
+          <button type="button" (click)="linkPolicyToActivity()" [disabled]="linkPolicyDetailForm.form.invalid">Link
+            Policy</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Policy bazaar Modal starts from here to select images -->
+<div class="modal fade" id="policyBazaarModal" role="dialog" *ngIf="showPolicyBazaarGallery">
+  <div class="modal-dialog approvalModal" id="pbModalId">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <!-- <span class="h6 fw-700">Policy Bazaar Details </span> -->
+
+        <div class="pbDiv">
+          <button type="button" *ngIf="videoGalleryObjectList?.length > 0" data-toggle="modal"
+            data-target="#policyBazaarVideoModal" (click)="openPBVideo(selectedPBPic)">Video</button>
+          <button type="button" style="margin-right: 60px" (click)="updateTheSelectedImages()">Save</button>
+          <span class="close" data-dismiss="modal" aria-hidden="true"
+            (click)="lockAndUnlockActivityStatus();">&times;</span>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div style="text-align:center;">
+          <label>
+          </label>
+        </div>
+
+        <div class="row sizing-border" style="overflow: auto;">
+          <div *ngFor="let image of pBGalleryObjectToShow; let in=index" class="column">
+            <div>
+              <div class="col-12">
+                <img id="imgIndex{{in}}" class="img-size" src={{image.s3Link}}
+                  (click)="policyBazaarPicSelected(image , in);checkIfMultipleAvailable(image,$event , in )"
+                  alt="Forest">
+              </div>
+
+              <!-- <div *ngIf="picStatus" id="listId" [ngClass]="(picStatus === true)? 'img-list-view':'display-none'">
+                  <div id="childId" style="padding-right: 5p" *ngFor="let images of pbGalleryObjectToRenderHidden">
+                    <img src={{images.s3Link}} (click)="policyBazaarPicSelected(images)" alt="Forest" style="width:100 ; height: 70%">
+                  </div>
+                </div> -->
+            </div>
+          </div>
+        </div>
+        <div class="row border-image" id="subImageId" style="overflow: auto;position: relative;" *ngIf="picStatus">
+          <div *ngFor="let images of pbGalleryObjectToRenderHidden" style="margin-right: 5px">
+            <img src={{images.s3Link}} class="img-size-small" (click)="policyBazaarPicSelected(images)" alt="Forest">
+          </div>
+        </div>
+
+        <div class="col-12 ">
+          <div class="row">
+            <div class="col-8">
+              <h3 *ngIf="selectedPBPic.documentName != undefined && selectedPBPic.documentName != '' "
+                class="header-right">{{getDocumentFullName(selectedPBPic.documentName)}}
+                ( {{ selectedPBPic.documentName }} )</h3>
+            </div>
+            <div class="col-2">
+              <button style="float: right" type="button" (click)="selectedPicInterchange(selectedPBPic)">Select</button>
+            </div>
+            <div class="col-2 document-name-dropdown">
+              <button style="float: left" type="button" (click)="openAndCloseDropDown($event)">Edit Name</button>
+              <div class="doc-dropdown-content">
+                <a *ngFor="let eachImageName of docImageNames" (click)="updateDocName(eachImageName,selectedPBPic)">
+                  {{eachImageName}}</a>
+              </div>
+            </div>
+          </div>
+
+
+          <img class="img-view-size" src={{selectedPBPic.s3Link}} alt="">
+        </div>
+        <div class="modal-footer">
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<!-- policy bazaar modal ends here  -->
+
+
+
+<!-- Policy bazaar video gallery start -->
+<div class="modal fade" id="policyBazaarVideoModal" role="dialog" *ngIf="showPolicyBazaarVideoGallery">
+  <div class="modal-dialog approvalModal">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <span class="h6 fw-700">Policy Bazaar Video Gallery </span>
+
+        <div class="pbDiv">
+          <span class="close" data-dismiss="modal" aria-hidden="true" (click)="closePBVideoModal();">&times;</span>
+        </div>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="table-responsive tab-pane fade active in">
+          <div>
+            <div class="video-slider">
+              <!-- SLIDE 1 -->
+              <div class="slide">
+                <video class="slider-video" [src]="videoItem" controls>
+                </video>
+              </div>
+              <!-- END OF SLIDES -->
+              <span class="slide-arrow left" (click)="showAnotherVideo('left')">
+              </span>
+              <span class="slide-arrow right" (click)="showAnotherVideo('right')">
+              </span>
+            </div>
+          </div>
+          <table class="table">
+            <tr class="tabRow">
+              <th>Name</th>
+              <th>Type</th>
+              <th>Link</th>
+              <th>Uploaded On</th>
+            </tr>
+            <tr *ngFor=" let doc of videoGalleryObjectList">
+              <td>{{doc.documentName}}</td>
+              <td>
+                <i class="material-icons">videocam</i>
+              </td>
+              <td>
+                <a (click)="downloadVideo(doc.s3Link); ">
+                  <i class="material-icons">file_download</i>
+                </a>
+              </td>
+              <td>{{doc.lastModifiedDate}}</td>
+            </tr>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<!-- policy bazaar video gallery ends  here  -->
+<!-- display quote modal starts -->
+<div *ngIf="displayQuoteModal" id="displayQuoteModal">
+  <div class="customModalContainer show-modal">
+    <div class="modal-content customModalContent">
+      <div class="modal-header modalHeader">
+        <h3 class="h6 fw-700"> Display Quote
+          <span class="close" data-dismiss="modal" aria-hidden="true"
+            (click)="displayQuoteModalToggle();">&times;</span>
+        </h3>
+      </div>
+      <div class="modal-body">
+        <table>
+          <tbody>
+            <tr>
+              <td style="width: 20%"><b>Insured Name</b></td>
+              <td style="width: 20%">{{policyResult.policyHolder.firstName}} {{policyResult.policyHolder.lastName}}</td>
+              <td style="width: 20%" *ngIf="policyResult.policyHolder.addressDetails != undefined"><b>Address</b></td>
+              <td style="width: 40%" *ngIf="policyResult.policyHolder.addressDetails != undefined">
+                {{policyResult.policyHolder.addressDetails.streetNumber}},
+                {{policyResult.policyHolder.addressDetails.streetName}},{{policyResult.policyHolder.addressDetails.city}},
+                {{policyResult.policyHolder.addressDetails.district}}</td>
+            </tr>
+            <tr>
+              <td *ngIf="policyResult.policyHolder.contactDetails != undefined"><b>Mobile No</b></td>
+              <td *ngIf="policyResult.policyHolder.contactDetails != undefined">
+                {{policyResult.policyHolder.contactDetails.maskedMobileNumber}}</td>
+              <td *ngIf="policyResult.policyHolder.contactDetails != undefined"><b>Email</b></td>
+              <td *ngIf="policyResult.policyHolder.contactDetails != undefined">
+                {{policyResult.policyHolder.contactDetails.maskedEmail}}</td>
+            </tr>
+            <tr>
+              <td><b>Policy No.</b></td>
+              <td>{{policyResult.policyNumber}}</td>
+              <td><b>Product Name</b></td>
+              <td>{{policyResult.policyName}}</td>
+            </tr>
+            <tr>
+              <td><b>OD Policy Start Date</b></td>
+              <td>{{ConvertDate(policyResult.policyStartDate)}}</td>
+              <td><b>OD Policy End Date</b></td>
+              <td>{{ConvertDate(policyResult.policyEndDate)}}</td>
+            </tr>
+            <tr>
+              <td><b>TP Policy Start Date</b></td>
+              <td>{{ConvertDate(policyResult.policyStartDate)}}</td>
+              <td><b>TP Policy End Date</b></td>
+              <td>{{ConvertDate(policyResult.tpPolicyEndDate)}}</td>
+            </tr>
+            <tr>
+              <td><b>Policy Issue Date</b></td>
+              <td>{{ConvertDate(policyResult.policyIssueDate)}}</td>
+              <td><b>Invoice No</b></td>
+              <td>{{policyResult.invoiceNumber}}</td>
+            </tr>
+            <tr>
+              <td><b>NCB % (Current Policy)</b></td>
+              <td>{{policyResult.NCBCurrentPolicy}}%</td>
+              <td><b>Coverages Opted</b></td>
+              <td>{{policyResult.motorCoverage.ownDamage.planOpted}}</td>
+            </tr>
+            <tr>
+              <td *ngIf="policyResult.motorCoverage.ownDamage.voluntaryDeductible != undefined"><b>Voluntary Deductible
+                  (₹)</b></td>
+              <td *ngIf="policyResult.motorCoverage.ownDamage.voluntaryDeductible != undefined">
+                {{policyResult.motorCoverage.ownDamage.voluntaryDeductible.dedcutible}}</td>
+              <td *ngIf="policyResult.motorCoverage.ownDamage != undefined"><b>Compulsory Deductible (₹)</b></td>
+              <td *ngIf="policyResult.motorCoverage.ownDamage != undefined">
+                {{policyResult.motorCoverage.ownDamage.compulsaryDeductible}}</td>
+            </tr>
+            <tr>
+              <td><b>Additional Excess (₹)</b></td>
+              <td>{{policyResult.motorCoverage.additionalExcess.additionalExcessAmount}}</td>
+            </tr>
+            <tr>
+              <td><b>Total OD Premium (₹)</b></td>
+              <td>{{policyResult.motorCoverage.totalODPremium}}</td>
+              <td><b>Total Act Premium (₹)</b></td>
+              <td>{{policyResult.motorCoverage.totalActPremium}}</td>
+            </tr>
+            <tr>
+              <td><b>Net Premium</b></td>
+              <td>{{policyResult.motorCoverage.netPremium}}</td>
+              <td><b>Final Premium(Including GST)</b></td>
+              <td>{{policyResult.motorCoverage.finalPremium}}</td>
+            </tr>
+            <tr>
+              <td><b>Vehicle Registration No.</b></td>
+              <td>{{policyResult.insuredObject.registrationNumber}}</td>
+              <td><b>Engine No.</b></td>
+              <td>{{policyResult.insuredObject.engineNumber}}</td>
+            </tr>
+            <tr>
+              <td><b>Chassis No.</b></td>
+              <td>{{policyResult.insuredObject.chassisNumber}}</td>
+              <td><b>Fuel Type</b></td>
+              <td>{{policyResult.insuredObject.fuelType}}</td>
+            </tr>
+            <tr>
+              <td><b>Make</b></td>
+              <td>{{policyResult.insuredObject.make}}</td>
+              <td><b>Model/Vehicle Variant (Sub-Type)</b></td>
+              <td>{{policyResult.insuredObject.model}}/{{policyResult.insuredObject.vehicleSubType}}</td>
+            </tr>
+            <tr>
+              <td><b>Seating Capacity</b></td>
+              <td>{{policyResult.insuredObject.seatingCapacity}}</td>
+              <td><b>Year of Mfg.</b></td>
+              <td>{{policyResult.insuredObject.manufacturedDate}}</td>
+            </tr>
+            <tr>
+              <td><b>Cubic Capacity</b></td>
+              <td>{{policyResult.insuredObject.cubicCapacity}}</td>
+              <td><b>Year of Regn.</b></td>
+              <td>{{policyResult.insuredObject.registrationDate}}</td>
+            </tr>
+            <tr>
+              <td><b>RTO Location</b></td>
+              <td>{{policyResult.insuredObject.registrationPlace}}</td>
+              <td><b>Vehicle IDV</b></td>
+              <td>{{policyResult.motorCoverage.ownDamage.totalIDV}}</td>
+            </tr>
+            <tr>
+              <td><b>Previous Insurer</b></td>
+              <td>{{policyResult.insurer.previousInusurer}}</td>
+              <td><b>Previous Policy No.</b></td>
+              <td>{{policyResult.insurer.previousPolicyNumber}}</td>
+            </tr>
+            <tr>
+              <td><b>Previous Policy Expiry Date</b></td>
+              <td>{{ConvertDate(policyResult.insurer.observationPeriodEndDate)}}</td>
+              <td><b>Details of Existing Damages</b></td>
+              <td>{{policyResult.insurer.numberOfClaim}}</td>
+            </tr>
+            <tr>
+              <td><b>Payment Mode</b></td>
+              <td>{{policyResult.payment.paymentType}}</td>
+              <td><b>Cheque/Transation No</b></td>
+              <td>{{policyResult.payment.insutrumenNumber}}</td>
+            </tr>
+            <tr>
+              <td><b>Receipt No.</b></td>
+              <td>{{policyResult.receiptNumber}}</td>
+              <td><b>Date</b></td>
+              <td>{{ConvertDate(policyResult.payment.date)}}</td>
+            </tr>
+            <tr>
+              <td><b>Nominee Details</b></td>
+              <td>{{policyResult.nominee.relation}}</td>
+              <td><b>IMT – Endorsements</b></td>
+              <td>{{getList(policyResult.motorCoverage.endorsements)}}</td>
+            </tr>
+            <tr>
+              <td><b>Financier Details</b></td>
+              <td>{{policyResult.motorCoverage.financierName}}</td>
+              <td><b>Other Details</b></td>
+              <td>--</td>
+            </tr>
+            <tr>
+              <td><b>Partner Name & Code</b></td>
+              <td>{{policyResult.agent.agentName}},{{policyResult.agent.agentCode}}</td>
+              <td><b>Partner Phone & Partner Email</b></td>
+              <td>{{policyResult.agent.agentContact}},{{policyResult.agent.agentEmail}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="closeDisplayQuoteModal" (click)="displayQuoteModalToggle()"
+          data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- display quote modal ends here -->
+<!-- reinspection modal for motor -->
+<div class="modal fade" id="reinspectionModal" role="dialog" *ngIf="showReinspectionModal">
+  <div class="modal-dialog approvalModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="h6 fw-700">Reinspection</span>
+        <div class="pbDiv">
+          <span class="close" data-dismiss="modal" aria-hidden="true" (click)="reinspectionToggle()">&times;</span>
+        </div>
+      </div>
+      <form name="rIFormForMotor" #rIFormForMotor="ngForm">
+        <div class="modal-body">
+          <div class="table-responsive tab-pane fade active in">
+            <div>
+              <div *ngIf="imageNotClearString.length">
+                <p><b>Image Not Clear: </b></p>
+                <p>{{imageNotClearString}}</p>
+              </div>
+              <div *ngIf="imageNotValidString.length">
+                <p><b>Image Not Valid: </b></p>
+                <p>{{imageNotValidString}}</p>
+              </div>
+            </div>
+
+            <div>
+              <ng-multiselect-dropdown [placeholder]="'Select Reasons For Re-Inspection'" id="riRemarks"
+                name="riRemarks" [data]="motorReinspectionRemarksArray" [(ngModel)]="motorSelectedRIRemarks"
+                [settings]="reInspectionDropdownSettings" (ngModelChange)="rIChanged(motorSelectedRIRemarks , 'motor')"
+                required>
+              </ng-multiselect-dropdown>
+            </div>
+
+            <div>
+              <div style="margin-top: 20px;">
+                <p> Remarks </p>
+              </div>
+              <textarea style="margin-top: 5px;" name="reinspectionRemarks" id="reinspectionRemarks" rows="3"
+                placeholder="Reinspection Comments" [(ngModel)]="reinspectionRemarks" required readonly></textarea>
+            </div>
+
+            <div class="reinspectionOKButton">
+              <button style="margin-top: 10px;" (click)="reinspectionToggle()">Cancel</button>
+
+              <button style="margin-top: 10px;"
+                (click)="saveInspection(gallery,imageComment,'reinspection',imageStatus)"
+                [disabled]="rIFormForMotor.form.invalid">OK </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- display quote mobile preinspection modal starts here -->
+<div *ngIf="displayQuoteMobilePreInspectionModal" id="displayQuoteMobilePreInspectionModal">
+  <div class="customModalContainer show-modal">
+    <div class="modal-content customModalContent">
+      <div class="modal-header modalHeader">
+        <h3 class="h6 fw-700"> Display Quote
+          <span class="close" data-dismiss="modal" aria-hidden="true"
+            (click)="displayQuoteModalMobilePreInspectionToggle();">&times;</span>
+        </h3>
+      </div>
+      <div class="modal-body">
+        <table>
+          <tbody>
+            <tr>
+              <td style="width: 20%"><b>Insured Name</b></td>
+              <td style="width: 20%">{{policyResultForMobilePreInspection.policyHolder.firstName}}
+                {{policyResultForMobilePreInspection.policyHolder.lastName}}</td>
+              <td style="width: 20%"
+                *ngIf="policyResultForMobilePreInspection.policyHolder.addressDetails != undefined"><b>Address</b></td>
+              <td style="width: 40%"
+                *ngIf="policyResultForMobilePreInspection.policyHolder.addressDetails != undefined">
+                {{policyResultForMobilePreInspection.policyHolder.addressDetails.streetNumber}}
+                {{policyResultForMobilePreInspection.policyHolder.addressDetails.streetName}}
+                {{policyResultForMobilePreInspection.policyHolder.addressDetails.city}}
+                {{policyResultForMobilePreInspection.policyHolder.addressDetails.state}}
+                {{policyResultForMobilePreInspection.policyHolder.addressDetails.zip}}
+              </td>
+            </tr>
+            <tr>
+              <td *ngIf="policyResultForMobilePreInspection.policyHolder.contactDetails != undefined"><b>Mobile No</b>
+              </td>
+              <td *ngIf="policyResultForMobilePreInspection.policyHolder.contactDetails != undefined">
+                {{policyResultForMobilePreInspection.policyHolder.contactDetails.maskedMobileNumber}}</td>
+              <td *ngIf="policyResultForMobilePreInspection.policyHolder.contactDetails != undefined"><b>Email</b></td>
+              <td *ngIf="policyResultForMobilePreInspection.policyHolder.contactDetails != undefined">
+                {{policyResultForMobilePreInspection.policyHolder.contactDetails.maskedEmail}}</td>
+            </tr>
+            <tr>
+              <td><b>Policy No.</b></td>
+              <td>{{policyResultForMobilePreInspection.policyNumber}}</td>
+              <td><b>Product Name</b></td>
+              <td>{{policyResultForMobilePreInspection.policyName}}</td>
+            </tr>
+            <tr>
+              <td><b>OD Policy Start Date</b></td>
+              <td>{{ConvertDate(policyResultForMobilePreInspection.policyStartDate)}}</td>
+              <td><b>OD Policy End Date</b></td>
+              <td>{{ConvertDate(policyResultForMobilePreInspection.policyEndDate)}}</td>
+            </tr>
+            <tr>
+              <td><b>TP Policy Start Date</b></td>
+              <td>{{ConvertDate(policyResultForMobilePreInspection.policyStartDate)}}</td>
+              <td><b>TP Policy End Date</b></td>
+              <td>{{ConvertDate(policyResultForMobilePreInspection.tpPolicyEndDate)}}</td>
+            </tr>
+            <tr>
+              <td><b>Policy Issue Date</b></td>
+              <td>{{ConvertDate(policyResultForMobilePreInspection.policyIssueDate)}}</td>
+              <td><b>Invoice No</b></td>
+              <td>{{policyResultForMobilePreInspection.invoiceNumber}}</td>
+            </tr>
+            <tr>
+              <td><b>NCB % (Current Policy)</b></td>
+              <td>{{policyResultForMobilePreInspection.NCBCurrentPolicy}}%</td>
+              <td *ngIf="(policyResultForMobilePreInspection.motorCoverage != undefined)"><b>Coverages Opted</b></td>
+              <td *ngIf="(policyResultForMobilePreInspection.motorCoverage != undefined)">
+                {{policyResultForMobilePreInspection.motorCoverage.ownDamage.planOpted}}</td>
+            </tr>
+            <tr>
+              <td><b>Mobile IMEI No.</b></td>
+              <td>{{policyResultForMobilePreInspection.insuredObject.IMEI}}</td>
+              <td><b>Insurance Sum </b></td>
+              <td>{{policyResultForMobilePreInspection.insuredObject.insuranceSum}}</td>
+            </tr>
+            <tr>
+              <td><b>Make</b></td>
+              <td>{{policyResultForMobilePreInspection.insuredObject.make}}</td>
+              <td><b>Model</b></td>
+              <td>{{policyResultForMobilePreInspection.insuredObject.model}}</td>
+            </tr>
+            <tr>
+              <td><b>Payment Mode</b></td>
+              <td>{{policyResultForMobilePreInspection.payment.paymentType}}</td>
+              <td><b>Cheque/Transation No</b></td>
+              <td>{{policyResultForMobilePreInspection.payment.insutrumenNumber}}</td>
+            </tr>
+            <tr>
+              <td><b>Receipt No.</b></td>
+              <td>{{policyResultForMobilePreInspection.receiptNumber}}</td>
+              <td><b>Date</b></td>
+              <td>{{ConvertDate(policyResultForMobilePreInspection.payment.date)}}</td>
+            </tr>
+            <tr>
+              <td><b>Nominee Details</b></td>
+              <td>{{policyResultForMobilePreInspection.nominee.relation}}</td>
+            </tr>
+            <tr>
+              <td><b>Partner Name & Code</b></td>
+              <td>
+                {{policyResultForMobilePreInspection.agent.agentName}},{{policyResultForMobilePreInspection.agent.agentCode}}
+              </td>
+              <td><b>Partner Phone & Partner Email</b></td>
+              <td>
+                <p *ngIf="(policyResultForMobilePreInspection.agent.agentContact != undefined)">
+                  {{policyResultForMobilePreInspection.agent.agentContact}}</p>
+                <p *ngIf="(policyResultForMobilePreInspection.agent.agentContact != undefined)">
+                  {{policyResultForMobilePreInspection.agent.agentEmail}}</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="closeDisplayQuoteModal" (click)="displayQuoteModalMobilePreInspectionToggle()"
+          data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- display quote mobile preinspection modal ends here -->
+
+
+<!-- PI Pending Modal -->
+<div class="modal fade" id="piPendingModal" data-backdrop="static" data-keyboard="false" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="h6 fw-700">PI Pending Reasons
+          <span class="close" (click)="closePIPendingModal('close');" aria-hidden="true">&times;</span>
+        </h3>
+      </div>
+      <form name="pendingForm" #piPendingForm="ngForm">
+        <div class="modal-body">
+          <section>
+            <div class="container">
+              <div>
+                <ng-multiselect-dropdown name="piPendingReasonsDropDown"
+                  [placeholder]="'Select Reasons To keep in Pending'" [data]="dropDownForPIPending"
+                  [(ngModel)]="selectedPIPendingItems" [settings]="dropdownSettings"
+                  (ngModelChange)="getPIPendingReason()">
+                </ng-multiselect-dropdown>
+              </div>
+              <div>
+                <label for="user comment">User Comment</label>
+                <textarea name="userComment" id="userComment" rows="3" [(ngModel)]="userCommentForPIPending"
+                  autocomplete="off"></textarea>
+              </div>
+              <!-- PI Pending Pics  -->
+              <div>
+                <ng-multiselect-dropdown name="piPendingPicsDropDown" [placeholder]="'Select Pending Pics'"
+                  [data]="dropDownForPIPendingPics" [(ngModel)]="selectedPIPendingPics" [settings]="dropdownSettings"
+                  (ngModelChange)="getPIPendingPics()" required>
+                </ng-multiselect-dropdown>
+              </div>
+
+            </div>
+          </section>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button type="button" id="closeModal" (click)="closePIPendingModal('cancel')">Cancel</button>
+        <button type="button" [disabled]="checkPendingDisableConditions(piPendingForm)"
+          (click)="savePIPending(fromRiskQuestion)">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Re-Inspection modal for mobile  -->
+<div class="modal fade" id="reinspectionModalForMobile" role="dialog" *ngIf="showReinspectionModalForMobile">
+  <div class="modal-dialog approvalModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="h6 fw-700">Reinspection for Mobile</span>
+        <div class="pbDiv">
+          <span class="close" data-dismiss="modal" aria-hidden="true"
+            (click)="reinspectionToggleForMobile()">&times;</span>
+        </div>
+      </div>
+      <form name="riFormForMobile" #rIFormForMobile="ngForm">
+        <div class="modal-body">
+          <div class="table-responsive tab-pane fade active in">
+
+            <div>
+              <ng-multiselect-dropdown [placeholder]="'Select Reasons For Re-Inspection'" id="riRemarksForMobile"
+                name="riRemarksForMobile" [data]="mobileReinspectionRemarksArray" [(ngModel)]="mobileSelectedRIRemarks"
+                [settings]="reInspectionDropdownSettings"
+                (ngModelChange)="rIChanged(mobileSelectedRIRemarks , 'mobile')" required>
+              </ng-multiselect-dropdown>
+            </div>
+
+            <div>
+              <div style="margin-top: 20px;">
+                <p> Remarks </p>
+              </div>
+              <textarea style="margin-top: 5px;" name="reinspectionRemarksForMobile" id="reinspectionRemarksForMobile"
+                rows="3" placeholder="Reinspection Remarks" [(ngModel)]="reinspectionRemarksForMobile" required
+                readonly></textarea>
+            </div>
+
+            <div class="reinspectionOKButton">
+              <button style="margin-top: 10px;" (click)="reinspectionToggleForMobile()">Cancel</button>
+
+              <button style="margin-top: 10px;" (click)="submitMobileApproval('50',mobilePreinspectionSMSMessage)"
+                [disabled]="rIFormForMobile.form.invalid">OK </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- End of Re-Inspection modal for mobile  -->
+
+
+<!--vahan details-->
+<div class="modal fade" id="vahanDetails" role="dialog" *ngIf="vahanModel">
+  <div class="modal-dialog approvalModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="ma-0">
+          <span>Vahan Details</span>
+          <span class="close close-btn" data-dismiss="modal" aria-hidden="true"
+            (click)="closeVahanModel()">&times;</span>
+        </h5>
+      </div>
+      <div class="modal-body">
+        <div class="card">
+          <table class="table ">
+            <thead>
+              <tr>
+                <th>Vehicle Parameter</th>
+                <th>Vahan Response</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Vehicle Registration Number</td>
+                <td>{{vahanRegistrationNumberDetails.veh_reg_no || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Make</td>
+                <td>{{vahanRegistrationNumberDetails.make || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Model</td>
+                <td>{{vahanRegistrationNumberDetails.model || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Engine Number</td>
+                <td>{{vahanRegistrationNumberDetails.engine_no || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Chassis Number</td>
+                <td>{{vahanRegistrationNumberDetails.vin || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Vehicle Registration Date</td>
+                <td>{{vahanRegistrationNumberDetails.veh_reg_date || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Owner Name</td>
+                <td>{{vahanRegistrationNumberDetails.owner_name || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Fitness Upto</td>
+                <td>{{vahanRegistrationNumberDetails.fitness_upto || '--'}}</td>
+              </tr>
+              <tr>
+                <td>RC Status</td>
+                <td>{{vahanRegistrationNumberDetails.rc_status || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Fuel Type</td>
+                <td>{{vahanRegistrationNumberDetails.fuel_type || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Insurance upto</td>
+                <td>{{vahanRegistrationNumberDetails.insurance_upto || '--'}}</td>
+              </tr>
+              <tr>
+                <td>RC status as on</td>
+                <td>{{vahanRegistrationNumberDetails.veh_reg_no || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Address</td>
+                <td>{{vahanRegistrationNumberDetails.address || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Address 1</td>
+                <td>{{vahanRegistrationNumberDetails.address_1 || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Sleeper Capacity</td>
+                <td>{{vahanRegistrationNumberDetails.sleeper_capacity || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Standing Capacity</td>
+                <td>{{vahanRegistrationNumberDetails.standing_capacity || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Gross Vehicle Weight</td>
+                <td>{{vahanRegistrationNumberDetails.gvw || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Owner Serial Number</td>
+                <td>{{vahanRegistrationNumberDetails.owner_serial_no || '--'}}</td>
+              </tr>
+              <tr>
+                <td>PUC certificate upto</td>
+                <td>{{vahanRegistrationNumberDetails.pucc_upto || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Cubic Capacity</td>
+                <td>{{vahanRegistrationNumberDetails.cubic_capacity || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Insurance Company</td>
+                <td>{{vahanRegistrationNumberDetails.insurance_company || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Seat Capacity</td>
+                <td>{{vahanRegistrationNumberDetails.seat_capacity || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Insurance Policy Number</td>
+                <td>{{vahanRegistrationNumberDetails.insurance_policy_no || '--'}}</td>
+              </tr>
+              <tr>
+                <td>RC color</td>
+                <td>{{vahanRegistrationNumberDetails.rc_color || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Vehicle Class</td>
+                <td>{{vahanRegistrationNumberDetails.veh_class || '--'}}</td>
+              </tr>
+              <tr>
+                <td>Manufacturing Month and Year</td>
+                <td>{{vahanRegistrationNumberDetails.manf_month_year || '--'}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--auto-pi modal-->
+<div class="modal fade" id="autoPIDecisionModal" role="dialog">
+  <div class="modal-dialog approvalModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="ma-0">
+          <span>Auto PI Details</span>
+          <span class="close close-btn" (click)="closeAutoPIModel()">&times;</span>
+        </h5>
+      </div>
+      <div class="modal-body">
+        <div class="card">
+          <table class="table">
+            <thead>
+              <tr>
+                <th class="parameter">Parameter</th>
+                <th class="response">Response</th>
+              </tr>
+            </thead>
+            <tbody *ngIf="autoPiResponse && autoPiResponse.length">
+              <tr *ngFor="let data of autoPiResponse">
+                <td>{{data.key}}</td>
+                <td>{{data.value || '--'}}</td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="!autoPiResponse.length">
+              <tr>
+                <td colspan="2" class="text-center">No Data!</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- sensor Data -->
+
+<div id="carImageModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"
+  style="z-index: 1600;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="close" data-dismiss="modal" (click)="closeCarImageModal();" aria-hidden="true">&times;</span>
+      </div>
+      <div class="modal-body">
+        <img src="{{imagePopup}}" class="imagepreview" style="width: 100%;">
+      </div>
+      <div class="modal-footer">
+        <button type="button" (click)="closeCarImageModal();" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="FSModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false" style="z-index: 1600;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+        <table class="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <th scope="col">Absolute Date</th>
+              <th scope="col">Step Count</th>
+              <th scope="col">Time Taken</th>
+              <th scope="col">Latitude</th>
+              <th scope="col">Longitude</th>
+              <th scope="col">Pose Detection</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let data of filteredData">
+              <td>{{data.absolutDate}}</td>
+              <td>{{data.stepCount}}</td>
+              <td>{{data.timeTaken}}</td>
+              <td>{{data.lat}}</td>
+              <td>{{data.lon}}</td>
+              <td>{{data.poseDetection}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="carModel" data-backdrop="static" data-keyboard="false" role="dialog">
+  <div class="modal-dialog approvalModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="h6 fw-700">Car Model
+          <span class="close" data-dismiss="modal" aria-hidden="true" (click)="closeCarModel();">&times;</span>
+        </h3>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive tab-pane fade active in">
+          <div class="col-10" style="padding-left: 70px;margin-top: 50px;margin-bottom: 70px;">
+            <div>
+              <div id="breakdownWrap" class="wrapper">
+                <div class="fsIcon img-width-align">
+                  <a *ngIf="fs && fs.length>0 && fs[0].s3Link!==undefined" (click)="openPopupImage(fs[0].s3Link)">
+                    <img alt="car model" src={{fs[0].s3Link}} width="50px" height="50px" />
+                  </a>
+                  <span
+                    *ngIf="!fs || (fs && fs.length===0) || (fs && fs.length>0 && !fs[0].s3Link) || fs[0].s3Link===undefined">
+                    <img alt="car" src="assets/Image/default-car.jpg" />
+                  </span>
+                </div>
+                <span class="fs-retry" *ngIf="fsRetryCount.length>0">{{fsRetryCount.length}}</span>
+                <div class="fs tooltip">
+                  <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('FS')">FS</a>
+                </div>
+                <div class="frcIcon img-width-align">
+                  <a *ngIf="flc && flc.length>0 && flc[0].s3Link!==undefined" (click)="openPopupImage(flc[0].s3Link)">
+                    <img alt="car model" src={{flc[0].s3Link}} width="50px" height="50px" />
+                  </a>
+                  <span
+                    *ngIf="!flc || (flc && flc.length===0) || (flc && flc.length>0 && !flc[0].s3Link) || flc[0].s3Link===undefined">
+                    <img alt="car" src="assets/Image/default-car.jpg" />
+                  </span>
+                </div>
+                <span class="frc-retry" *ngIf="flcRetryCount.length>0">{{flcRetryCount.length}}</span>
+                <i class="material-icons"
+                  style="position: absolute;top: 296px;left: 198px;color: black!important;z-index: 999999;">
+                  keyboard_arrow_left </i>
+                <div class="frc tooltip img-width-align">
+                  <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('FLC')">FLC</a>
+                </div>
+                <div class="rsIcon img-width-align">
+                  <a *ngIf="ls && ls.length>0 && ls[0].s3Link!==undefined" (click)="openPopupImage(ls[0].s3Link)">
+                    <img alt="car model" src={{ls[0].s3Link}} width="50px" height="50px" />
+                  </a>
+                  <span
+                    *ngIf="!ls || (ls && ls.length===0) || (ls && ls.length>0 && !ls[0].s3Link) || ls[0].s3Link===undefined">
+                    <img alt="car" src="assets/Image/default-car.jpg" />
+                  </span>
+                </div>
+                <span class="rs-retry" *ngIf="lsRetryCount.length>0">{{lsRetryCount.length}}</span>
+                <i *ngIf="ls" class="material-icons"
+                  style="position: absolute;top: 73%;left: 459px;color: black!important;z-index: 999999;">
+                  keyboard_arrow_left </i>
+                <div class="rs tooltip">
+                  <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('LS')">LS</a>
+                </div>
+                <div class="brcIcon img-width-align">
+                  <a *ngIf="blc && blc.length>0 && blc[0].s3Link!==undefined" (click)="openPopupImage(blc[0].s3Link)">
+                    <img alt="car model" src={{blc[0].s3Link}} width="50px" height="50px" />
+                  </a>
+                  <span
+                    *ngIf="!blc || (blc && blc.length===0) || (blc && blc.length>0 && !blc[0].s3Link) || blc[0].s3Link===undefined">
+                    <img alt="car" src="assets/Image/default-car.jpg" />
+                  </span>
+                </div>
+                <span class="brc-retry" *ngIf="blcRetryCount.length>0">{{blcRetryCount.length}}</span>
+                <i *ngIf="blc" class="material-icons"
+                  style="position: absolute;top: 70%;left: 655px;color: black!important;z-index: 999999;">
+                  keyboard_arrow_down </i>
+                <div class="brc tooltip">
+                  <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('BLC')">BLC</a>
+                </div>
+                <div class="bsIcon img-width-align">
+                  <a *ngIf="bs && bs.length>0 && bs[0].s3Link!==undefined" (click)="openPopupImage(bs[0].s3Link)">
+                    <img alt="car model" src={{bs[0].s3Link}} width="50px" height="50px" />
+                  </a>
+                  <span
+                    *ngIf="!bs || (bs && bs.length===0) || (bs && bs.length>0 && !bs[0].s3Link) || bs[0].s3Link===undefined">
+                    <img alt="car" src="assets/Image/default-car.jpg" />
+                  </span>
+                </div>
+                <span class="bs-retry" *ngIf="bsRetryCount.length>0">{{bsRetryCount.length}}</span>
+                <i *ngIf="bs" class="material-icons"
+                  style="position: absolute;top: 41%;left: 695px;color: black!important;z-index: 999999;">
+                  keyboard_arrow_down </i>
+                <div class="bs tooltip">
+                  <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('BS')">BS</a>
+                </div>
+                <div class="blcIcon img-width-align">
+                  <a *ngIf="brc && brc.length>0 && brc[0].s3Link!==undefined" (click)="openPopupImage(brc[0].s3Link)">
+                    <img alt="car model" src={{brc[0].s3Link}} width="50px" height="50px" />
+                  </a>
+                  <span
+                    *ngIf="!brc || (brc && brc.length===0) || (brc && brc.length>0 && !brc[0].s3Link) || brc[0].s3Link===undefined">
+                    <img alt="car" src="assets/Image/default-car.jpg" />
+                  </span>
+                </div>
+                <span class="blc-retry" *ngIf="brcRetryCount.length>0">{{brcRetryCount.length}}</span>
+                <i *ngIf="brc" class="material-icons"
+                  style="position: absolute;top: 18%;left: 69%;color: black!important;z-index: 999999;">
+                  keyboard_arrow_right </i>
+                <div class="blc tooltip">
+                  <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('BRC')">BRC</a>
+                </div>
+                <div class="lsIcon img-width-align">
+                  <a *ngIf="rs && rs.length>0 && rs[0].s3Link!==undefined" (click)="openPopupImage(rs[0].s3Link)">
+                    <img alt="car model" src={{rs[0].s3Link}} width="50px" height="50px" />
+                  </a>
+                  <span
+                    *ngIf="!rs || (rs && rs.length===0) || (rs && rs.length>0 && !rs[0].s3Link) || rs[0].s3Link===undefined">
+                    <img alt="car" src="assets/Image/default-car.jpg" />
+                  </span>
+                </div>
+                <span class="ls-retry" *ngIf="rsRetryCount.length>0">{{rsRetryCount.length}}</span>
+                <i *ngIf="rs" class="material-icons"
+                  style="position: absolute;top: 18%;left: 45%;color: black!important;z-index: 999999;">
+                  keyboard_arrow_right </i>
+                <div class="ls tooltip">
+                  <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('RS')">RS</a>
+                </div>
+                <div class="flcIcon img-width-align">
+                  <a *ngIf="frc && frc.length>0 && frc[0].s3Link!==undefined" (click)="openPopupImage(frc[0].s3Link)">
+                    <img alt="car model" src={{frc[0].s3Link}} width="50px" height="50px" />
+                  </a>
+                  <span
+                    *ngIf="!frc || (frc && frc.length===0) || (frc && frc.length>0 && !frc[0].s3Link) || frc[0].s3Link===undefined">
+                    <img alt="car" src="assets/Image/default-car.jpg" />
+                  </span>
+                </div>
+                <span class="frc-retry" *ngIf="frcRetryCount.length>0">{{frcRetryCount.length}}</span>
+                <i *ngIf="frc" class="material-icons"
+                  style="position: absolute;top: 20%;left: 175px;color: black!important;z-index: 999999;">
+                  keyboard_arrow_up
+                </i>
+                <div class="flc tooltip">
+                  <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('FRC')">FRC</a>
+                </div>
+                <canvas id="myCarModel" #myCarModel height="400" width="900" style="border:1px solid #d3d3d3;"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-2 additional-info">
+            <table class="table table-striped table-bordered" style="width: 157%;max-width: 170%;">
+              <thead class="thead-dark">
+                <tr>
+                  <th scope="col">Pose Name</th>
+                  <th scope="col">S3 Link</th>
+                  <th scope="col">Step Count</th>
+                  <th scope="col">Time Taken</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="dbd && dbd.length>0">
+                  <th>
+                    <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('DBD')">DBD</a>
+                  </th>
+                  <td>
+                    <a *ngIf="dbd && dbd.length>0 && dbd[0].s3Link!==undefined" (click)="openPopupImage(dbd[0].s3Link)">
+                      <img alt="car model" src={{dbd[0].s3Link}} width="50px" height="50px" />
+                    </a>
+                    <a
+                      *ngIf="!dbd || (dbd && dbd.length===0) || (dbd && dbd.length>0 && !dbd[0].s3Link) || dbd[0].s3Link===undefined">
+                      <img alt="car" src="assets/Image/default-car.jpg" />
+                    </a>
+                  </td>
+                  <td>{{dbd[0].stepCount}}</td>
+                  <td>{{dbd[0].timeTaken}}</td>
+                </tr>
+                <tr *ngIf="ws && ws.length>0">
+                  <th>
+                    <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('WS')">WS</a>
+                  </th>
+                  <td>
+                    <a *ngIf="ws && ws.length>0 && ws[0].s3Link!==undefined" (click)="openPopupImage(ws[0].s3Link)">
+                      <img alt="car model" src={{ws[0].s3Link}} width="50px" height="50px" />
+                    </a>
+                    <a
+                      *ngIf="!ws || (ws && ws.length===0) || (ws && ws.length>0 && !ws[0].s3Link) || ws[0].s3Link===undefined">
+                      <img alt="car" src="assets/Image/default-car.jpg" />
+                    </a>
+                  </td>
+                  <td>{{ws[0].stepCount}}</td>
+                  <td>{{ws[0].timeTaken}}</td>
+                </tr>
+                <tr *ngIf="ecr && ecr.length>0">
+                  <th>
+                    <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('ECR')">ECR</a>
+                  </th>
+                  <td>
+                    <a *ngIf="ecr && ecr.length>0 && ecr[0].s3Link!==undefined" (click)="openPopupImage(ecr[0].s3Link)">
+                      <img alt="car model" src={{ecr[0].s3Link}} width="50px" height="50px" />
+                    </a>
+                    <a
+                      *ngIf="!ecr || (ecr && ecr.length===0) || (ecr && ecr.length>0 && !ecr[0].s3Link) || ecr[0].s3Link===undefined">
+                      <img alt="car" src="assets/Image/default-car.jpg" />
+                    </a>
+                  </td>
+                  <td>{{ecr[0].stepCount}}</td>
+                  <td>{{ecr[0].timeTaken}}</td>
+                </tr>
+                <tr *ngIf="chp && chp.length>0">
+                  <th>
+                    <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('CHP')">CHP</a>
+                  </th>
+                  <td>
+                    <a *ngIf="chp && chp.length>0 && chp[0].s3Link!==undefined" (click)="openPopupImage(chp[0].s3Link)">
+                      <img alt="car model" src={{chp[0].s3Link}} width="50px" height="50px" />
+                    </a>
+                    <a
+                      *ngIf="!chp || (chp && chp.length===0) || (chp && chp.length>0 && !chp[0].s3Link) || chp[0].s3Link===undefined">
+                      <img alt="car" src="assets/Image/default-car.jpg" />
+                    </a>
+                  </td>
+                  <td>{{chp[0].stepCount}}</td>
+                  <td>{{chp[0].timeTaken}}</td>
+                </tr>
+                <tr *ngIf="cng && cng.length>0">
+                  <th>
+                    <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('CNG')">CNG</a>
+                  </th>
+                  <td>
+                    <a *ngIf="cng && cng.length>0 && cng[0].s3Link!==undefined" (click)="openPopupImage(cng[0].s3Link)">
+                      <img alt="car model" src={{cng[0].s3Link}} width="50px" height="50px" />
+                    </a>
+                    <a
+                      *ngIf="!cng || (cng && cng.length===0) || (cng && cng.length>0 && !cng[0].s3Link) || cng[0].s3Link===undefined">
+                      <img style="width: 50px;" alt="car" src="assets/Image/default-car.jpg" />
+                    </a>
+                  </td>
+                  <td>{{cng[0].stepCount}}</td>
+                  <td>{{cng[0].timeTaken}}</td>
+                </tr>
+                <tr *ngIf="rcb1 && rcb1.length>0">
+                  <th>
+                    <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('RCB1')">RCB1</a>
+                  </th>
+                  <td>
+                    <a *ngIf="rcb1 && rcb1.length>0 && rcb1[0].s3Link!==undefined"
+                      (click)="openPopupImage(rcb1[0].s3Link)">
+                      <img alt="car model" src={{rcb1[0].s3Link}} width="50px" height="50px" />
+                    </a>
+                    <a
+                      *ngIf="!rcb1 || (rcb1 && rcb1.length===0) || (rcb1 && rcb1.length>0 && !rcb1[0].s3Link) || rcb1[0].s3Link===undefined">
+                      <img alt="car" src="assets/Image/default-car.jpg" />
+                    </a>
+                  </td>
+                  <td>{{rcb1[0].stepCount}}</td>
+                  <td>{{rcb1[0].timeTaken}}</td>
+                </tr>
+                <tr *ngIf="rcb2 && rcb2.length>0">
+                  <th>
+                    <a href="#" data-toggle="modal" data-target="#FSModal" (click)="openImageData('RCB1')">RCB2</a>
+                  </th>
+                  <td>
+                    <a *ngIf="rcb2 && rcb2.length>0 && rcb2[0].s3Link!==undefined"
+                      (click)="openPopupImage(rcb2[0].s3Link)">
+                      <img alt="car model" src={{rcb2[0].s3Link}} width="50px" height="50px" />
+                    </a>
+                    <a
+                      *ngIf="!rcb2 || (rcb2 && rcb2.length===0) || (rcb2 && rcb2.length>0 && !rcb2[0].s3Link) || rcb2[0].s3Link===undefined">
+                      <img alt="car" src="assets/Image/default-car.jpg" />
+                    </a>
+                  </td>
+                  <td>{{rcb2[0].stepCount}}</td>
+                  <td>{{rcb2[0].timeTaken}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- end of sensor data -->
+
+<!-- modal for odometer  reading -->
+<div class="modal fade" id="odometerReadingModal" role="dialog" *ngIf="showModalForOdometer">
+  <div class="modal-dialog odometerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="h6 fw-700">Non Break-In PI</span>
+        <div class="pbDiv">
+          <span class="close" style="font-size: 25px;" data-dismiss="modal" aria-hidden="true"
+            (click)="toggleForOdometerReadingModal()">&times;</span>
+        </div>
+      </div>
+      <form name="odometerForm" #odometerForm="ngForm">
+        <div class="modal-body">
+          <div class="table-responsive tab-pane fade active in">
+            <div>
+              <!-- <img *ngIf="documentDetail !== undefined" id="odometerImg" src={{documentDetail?.s3Link}} alt="Forest"> -->
+              <ngx-gallery #galleryForNonBreakin class="ngx-gallery" [options]="nonBrkinGalleryOptions"
+                [images]="galleryImagesForNonBrkin">
+              </ngx-gallery>
+            </div>
+            <div [hidden]="!(galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex] !== undefined 
+                        && galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex]['label']  ===  'DBD')">
+              <div class="col-2">
+                <label for="aiDetecetedOdometer">AI Detected Value</label>
+                <input type="text" id="aiDetecetedOdometer" name="aiDetecetedOdoMeter"
+                  [(ngModel)]="aiDetecetedOdometerValue" readonly>
+              </div>
+
+              <div class="col-3">
+                <label for="customerEnteredOdometerreading">Customer Entered Odometer Reading</label>
+                <input type="text" id="customerEnteredOdometerreading" name="customerEnteredOdometerreading"
+                  [(ngModel)]="customerEnteredOdometerreading" readonly>
+              </div>
+
+              <div class="col-3">
+                <label for="odometerManualEntry">Enter Odometer Reading</label>
+                <input type="text" id="odometerManualEntry" name="odometerManualEntry"
+                  [(ngModel)]="manualEntryodometerValue" required [readonly]="(galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex] !== undefined 
+                                            && galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex]['label']  !==  'DBD')
+                                            || !showOdometerEntryButtons || imageStatusForNonBrkin.get('DBD') > 0">
+              </div>
+              <div class="col-2">
+                <label for="vehicleRegisteredDate">Registration Date</label>
+                <input type="text" id="vehicleRegisteredDate" name="vehicleRegisteredDate"
+                  [(ngModel)]="vehicleRegisteredDate" readonly>
+              </div>
+            </div>
+            <ng-container *ngIf="galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex] !== undefined 
+            && galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex]['label']  ===  'FS'">
+
+              <div class="col-3">
+                <label for="registrationNumberForRollOver">Quote Registration number</label>
+                <input type="text" id="registrationNumberForRollOver" name="registrationNumberForRollOver"
+                  [(ngModel)]="registrationNumberForRollOver" readonly>
+              </div>
+
+              <div class="col-3">
+                <label for="aiNumberPlateValue">AI number plate</label>
+                <input type="text" id="aiNumberPlateValue" name="aiNumberPlateValue" [(ngModel)]="aiNumberPlateValue"
+                  readonly>
+              </div>
+            </ng-container>
+
+
+            <div class="col-1" *ngIf="galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex] !== undefined">
+              <div *ngFor="let imgStatus of imageStatusCheckList; let i=index">
+                <i *ngIf="i<2" class="material-icons"
+                  (click)="setNonBrkinImageStatus(imgStatus.key , galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex]['description']);">
+                  {{ nonBrkinRadioButton(imgStatus.key ,
+                  galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex]['description']) }}</i>
+                <label *ngIf="i<2" for="enum_answer_{{imgStatus.value1}}" class="radio text-gold inlineblock">
+                  {{ imgStatus.tooltipvalues[i] }}
+                </label>
+              </div>
+            </div>
+
+            <div class="col-2"
+              *ngIf="galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex] !== undefined 
+                  && imageStatusForNonBrkin.get(galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex]['label']) > 0">
+              <a class="text-gold border-align"
+                (click)="clearNonBrkinImageStatus(galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex]['label'])">Clear
+                Selection</a>
+            </div>
+
+
+            <div *ngIf="showautoApprovalFailureReasonRollover">
+              <div class="col-9">
+                <label for="autoApprovalFailureReasonRollover">Reason of auto approval failure:</label>
+                <textarea id="autoApprovalFailureReasonRollover" name="autoApprovalFailureReasonRollover"
+                  [(ngModel)]="autoApprovalFailureReasonRollover" rows="2" readonly></textarea>
+              </div>
+            </div>
+
+
+
+            <div class="reinspectionOKButton" *ngIf="showOdometerEntryButtons">
+              <button style="margin-top: 10px;" (click)="toggleForOdometerReadingModal()">Cancel</button>
+              <button style="margin-top: 10px;" *ngIf="galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex] !== undefined 
+              && galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex]['label']  ===  'FS'" (click)="putCaseInReinspection()">Reinspection</button>
+              <button style="margin-top: 10px;" *ngIf="galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex] !== undefined 
+                                  && galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex]['label']  ===  'FS'"
+                (click)="submitNBForResend(65)" [disabled]="odometerForm.form.invalid">Pending</button>
+              <!-- <button style="margin-top: 10px;" [disbaled]="isHiddenForRollOver('cancel')" (click)="submitNBForResend(50)" [disabled]="nbRIComments === ''">Re-Inspection</button> -->
+              <button style="margin-top: 10px;" *ngIf="galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex] !== undefined 
+                                  && galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex]['label']  ===  'FS'"
+                (click)="submitOdometer('REJECT')" [disabled]="odometerForm.form.invalid">Reject</button>
+
+              <button style="margin-top: 10px;"
+                *ngIf="galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex] !== undefined 
+                                  && galleryImagesForNonBrkin[galleryForNonBreakin?.selectedIndex]['label']  ===  'FS'
+                                  && (imageStatusForNonBrkin.get('DBD') === 0 && imageStatusForNonBrkin.get('FS')  === 0)"
+                (click)="submitOdometer('PROCESS')" [disabled]="odometerForm.form.invalid || disableProcess">Process</button>
+            </div>
+
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- modal for odometer  reading -->
+
+
+<!-- reject modal for motor -->
+<!-- *ngIf="showRejectModalForMotor" -->
+<div class="modal fade" id="rejectModalForMotor" data-backdrop="static" data-keyboard="false" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="h6 fw-700">Reject</span>
+        <div class="pbDiv">
+          <span class="close" data-dismiss="modal" aria-hidden="true"
+            (click)="closePIPendingModal('close');">&times;</span>
+        </div>
+      </div>
+      <form name="rejectFormForMotor" #rejectFormForMotor="ngForm">
+        <div class="modal-body">
+          <div class="table-responsive tab-pane fade active in">
+
+            <div>
+              <label for="product">Reject Reason</label>
+              <ng-multiselect-dropdown id="rejectReason" name="piRejectReason"
+                [placeholder]="'Select Reasons For PI Rejection'" [data]="motorRejectionReasonList"
+                [settings]="rejectDropDownSettings" [(ngModel)]="motorRejectReasonSelected"
+                (onSelect)="rejectionReasonSelected($event , 'selected')"
+                (onDeSelect)="rejectionReasonSelected($event , 'removed')" required>
+              </ng-multiselect-dropdown>
+            </div>
+
+            <div>
+              <div style="margin-top: 20px;">
+                <p>Rejection Reason</p>
+              </div>
+              <textarea style="margin-top: 5px;" name="motorRejectionReason" id="rejectionReason" rows="3"
+                placeholder="Reason For Rejection" [(ngModel)]="motorPIRejectReason" required readonly></textarea>
+            </div>
+
+            <div class="reinspectionOKButton">
+              <button style="margin-top: 10px;" (click)="closeRejectModal('close');">Cancel</button>
+
+              <button style="margin-top: 10px;"
+                (click)="saveInspection(gallery,imageComment,'reject',imageStatus);closeRejectModal('close');"
+                [disabled]="rejectFormForMotor.form.invalid">OK </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- rule engine decision accept modal -->
+<div class="modal fade" id="ruleEngineAcceptModal" data-backdrop="static" data-keyboard="false" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="h6 fw-700">Rule Engine Decision</span>
+        <div class="pbDiv">
+          <span class="close close-btn2" data-dismiss="modal" aria-hidden="true"
+            (click)="closeRuleEngineAcceptModal();">&times;</span>
+        </div>
+      </div>
+      <form name="rejectFormForMotor" #rejectFormForMotor="ngForm">
+        <div class="modal-body">
+          <div class="table-responsive tab-pane fade active in">
+
+            <div class="display-inline" *ngIf="showContinue">
+              <div *ngIf="!ruleEngineFailed"><b>Rule engine resulted in :- </b>{{ruleEngineDecision}}</div>
+
+              <br>
+              <div *ngIf="!ruleEngineFailed">
+                <div *ngIf="ruleEngineReasons"><b>Rule engine comments reasons :- </b>{{ruleEngineReasons}}</div>
+              </div>
+              <div *ngIf="ruleEngineFailed" class="error-msg-div">
+                <span class="error-msg"><b>{{errorMsg ? errorMsg : "Rule engine failed !"}}</b></span>
+              </div>
+
+            </div>
+            <div class="display-inline" *ngIf="odometerNotEntered">
+              <div>Please enter odometer value</div>
+            </div>
+            <div class="display-inline" *ngIf="ownerSerialNumberNotEntered">
+              <div>Please enter owner serial number</div>
+            </div>
+
+            <div style="text-align: center; padding-top: 50px"
+              *ngIf="showContinue && !ruleEngineFailed && showAutoRuleEngine && !auditCheck">
+              <div>Do you wish to continue?</div>
+              <button type="button" (click)="onSumbitRuleEngineDecision()">OK</button>
+              <button type="button" (click)="onCancelRuleEngineDecision()">Cancel</button>
+            </div>
+            <div style="text-align: center; padding-top: 30px;" *ngIf="auditCheck && ruleEngineDecision">
+              <div class="manual-comment-section" style="margin-bottom: 10px;">
+                <textarea name="manual-comment" id="manual-comment" [(ngModel)]="manualComment" placeholder="Mannual Comment" required></textarea>
+              </div>
+              <div style="margin: 10px 0;">Is Audit Completed?</div>
+              <button type="button" (click)="actionBasedOnRuleEngineDecision('Audit', 'Manual Checked')"
+                [disabled]="!manualComment">OK</button>
+              <button type="button" (click)="closeRuleEngineAcceptModal()">Cancel</button>
+            </div>
+
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- past rejection modal -->
+<div class="modal fade" id="pastRejectionModal" data-backdrop="static" data-keyboard="false" role="dialog"
+  style="margin-top: 10%;;z-index: 99999;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="ma-0">
+          <span>
+            <i _ngcontent-c0="" class="material-icons" style="font-size: 30px;">warning</i>
+            Warning!
+          </span>
+          <span class="close close-btn2" (click)="closePastRejectionModal();" aria-hidden="true">&times;</span>
+        </h4>
+      </div>
+      <div class="modal-body">
+        <h5 class="ma-0 warn" style="padding-left: 2%; padding-top: 4%;"><b>Pre-Inspection for this registration number
+            (<span>{{vehicleRegNo || '--'}}</span>) was rejected in the past 6 months.</b></h5>
+      </div>
+      <div class="modal-footer">
+        <button type="button" (click)="closePastRejectionModal()">Ok</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reinspection modal -->
+<div class="modal fade" id="ReinspectionModal" data-backdrop="static" data-keyboard="false" role="dialog"
+  style="margin-top: 10%;;z-index: 99999;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="ma-0">
+          <span>
+            Select Reinspection Reason
+          </span>
+          <span class="close close-btn2" (click)="closeReinspectionModal();" aria-hidden="true">&times;</span>
+        </h4>
+      </div>
+      <div class="modal-body">
+        <div class="col-12">
+          <label style="font-weight: bold;font-size: 15px;" for="reason">Reinspection Reason</label>
+          <select id="product" [(ngModel)]="reinspectionReason" (ngModelChange)="setReinspectionReason($event)">
+            <option value="">Select Reason</option>
+            <option *ngFor=" let reason of reinspectionList" [value]="reason">{{reason}}</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer" style="text-align: center;">
+        <button type="button" [disabled]="!reinspectionReason" (click)="saveComments()">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
